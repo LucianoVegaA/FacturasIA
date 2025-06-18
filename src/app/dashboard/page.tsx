@@ -1,16 +1,32 @@
 
-"use client";
-
 import * as React from "react";
-import { InvoiceTable } from "@/components/dashboard/InvoiceTable";
-import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/InvoiceFilter";
-import { sampleInvoices as initialInvoices } from "@/lib/invoiceData";
+import { connectToDatabase } from "@/lib/mongodb";
 import type { Invoice } from "@/lib/types";
-// Removed StatCard, InvoiceSummaryCard, InvoiceMetricsChart, and unused icons/toast
+import { InvoiceDashboardClient } from "@/components/dashboard/InvoiceDashboardClient";
 
-export default function DashboardPage() {
-  const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>(initialInvoices);
-  const [filters, setFilters] = React.useState<InvoiceFilters>({ month: "all", provedor: "" });
+async function getInvoicesFromDB(): Promise<Invoice[]> {
+  try {
+    const { db } = await connectToDatabase();
+    const invoicesCollection = db.collection<Omit<Invoice, '_id'>>("invoices"); // Specify Omit if _id is handled by Mongo
+    const rawInvoices = await invoicesCollection.find({}).sort({ date_of_issue: -1 }).toArray();
+    
+    // Convert ObjectId to string and ensure structure matches Invoice type
+    // Assuming data in DB mostly matches Invoice type, but _id needs conversion.
+    // If your data needs more transformation (like the original transformRawInvoice), apply it here.
+    return rawInvoices.map(doc => ({
+      ...doc,
+      _id: (doc as any)._id?.toString(), // Ensure _id is a string
+      // If your MongoDB stores items flat, you'd call transformRawInvoice here
+      // For now, assuming 'items' and 'status' are already structured in DB
+    })) as Invoice[];
+  } catch (error) {
+    console.error("Failed to fetch invoices from DB:", error);
+    return []; // Return empty array on error
+  }
+}
+
+export default async function DashboardPage() {
+  const initialInvoices = await getInvoicesFromDB();
 
   const availableMonths = React.useMemo(() => {
     const months = new Set<string>();
@@ -20,37 +36,15 @@ export default function DashboardPage() {
       }
     });
     return Array.from(months).sort((a, b) => b.localeCompare(a)); // Sort descending
-  }, []);
-
-  React.useEffect(() => {
-    const lowerProvedor = filters.provedor.toLowerCase();
-    
-    const newFilteredInvoices = initialInvoices.filter(invoice => {
-      const matchesProvedor = lowerProvedor === "" ||
-        invoice.billed_to.toLowerCase().includes(lowerProvedor);
-      
-      const matchesMonth = filters.month === "all" || 
-        (invoice.date_of_issue && invoice.date_of_issue.startsWith(filters.month));
-      
-      return matchesProvedor && matchesMonth;
-    });
-    
-    setFilteredInvoices(newFilteredInvoices);
-
-  }, [filters]);
+  }, [initialInvoices]);
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-3xl font-bold text-foreground">Invoices</h1>
-      
-      <InvoiceFilter 
-        filters={filters} 
-        setFilters={setFilters} 
+      <InvoiceDashboardClient 
+        initialInvoices={initialInvoices} 
         availableMonths={availableMonths} 
       />
-      
-      <InvoiceTable invoices={filteredInvoices} />
-      
     </div>
   );
 }

@@ -9,6 +9,7 @@ export interface InvoiceItemDetail {
 }
 
 export interface Invoice {
+  _id?: string; // MongoDB ObjectId as string
   onedrive_file_id: string;
   billed_to: string;
   invoice_number: string;
@@ -16,12 +17,9 @@ export interface Invoice {
   due_date: string | null; // "YYYY-MM-DD"
   invoice_description: string;
   
-  // Represents item_X_description, item_X_quantity etc. as a structured array
-  // This transformation should happen when data is fetched/loaded.
   items: InvoiceItemDetail[]; 
 
   // Raw item fields from JSON, for direct use if needed before transformation
-  // These are optional as they might not all exist for every invoice
   item_0_description?: string;
   item_0_quantity?: number;
   item_0_rate?: number;
@@ -34,7 +32,6 @@ export interface Invoice {
   item_2_quantity?: number;
   item_2_rate?: number;
   item_2_amount?: number;
-  // Potentially more items...
 
   subtotal: number;
   discount: number;
@@ -57,10 +54,12 @@ export interface Invoice {
   staffing_percentage: number;
   proyecto_percentage: number;
   software_percentage: number;
-  status: InvoiceStatus; // Added for clarity, can be derived
+  status: InvoiceStatus;
 }
 
 // Helper function to transform raw invoice data (with flat items) to structured Invoice type
+// This might be useful if your MongoDB data is stored in the flat "raw" format.
+// If your MongoDB data is already structured like the Invoice interface, you might not need this.
 export function transformRawInvoice(rawData: any): Invoice {
   const items: InvoiceItemDetail[] = [];
   for (let i = 0; ; i++) {
@@ -75,17 +74,22 @@ export function transformRawInvoice(rawData: any): Invoice {
     });
   }
 
-  // Determine status (example logic)
   let status: InvoiceStatus = 'Unpaid';
-  if (rawData.total === 0) status = 'Paid'; // Simplified logic
+  if (rawData.total === 0) status = 'Paid';
   else if (rawData.due_date && new Date(rawData.due_date) < new Date() && rawData.total > 0) {
     status = 'Overdue';
   }
 
 
-  return {
+  const transformed: Invoice = {
     ...rawData,
     items,
     status,
   };
+
+  if (rawData._id && typeof rawData._id !== 'string') {
+    transformed._id = rawData._id.toString();
+  }
+  
+  return transformed;
 }
