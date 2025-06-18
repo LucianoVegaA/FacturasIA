@@ -21,14 +21,10 @@ export default function LoginPage() {
                     strokeLinejoin="round"
                     className="h-8 w-8 text-primary"
                 >
-                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                    <line x1="10" y1="9" x2="8" y2="9" />
+                    <path d="M12 2l2.35 7.16h7.65l-6.18 4.48 2.35 7.16L12 16.32l-6.17 4.48 2.35-7.16L2 9.16h7.65L12 2z"/>
                 </svg>
                 <h1 className="text-3xl font-bold text-primary">
-                    Invoice Insight
+                    Hypernova
                 </h1>
             </div>
           <p className="mt-2 text-center text-sm text-muted-foreground">

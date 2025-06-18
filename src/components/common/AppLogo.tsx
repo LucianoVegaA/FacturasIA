@@ -1,8 +1,8 @@
 import type { SVGProps } from 'react';
 import Link from 'next/link';
 
-// Simple SVG Placeholder Icon for Invoice Insight
-const InvoiceIcon = (props: SVGProps<SVGSVGElement>) => (
+// Placeholder SVG Icon for Hypernova (Star)
+const HypernovaIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -15,11 +15,7 @@ const InvoiceIcon = (props: SVGProps<SVGSVGElement>) => (
     strokeLinejoin="round"
     {...props}
   >
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-    <polyline points="14 2 14 8 20 8" />
-    <line x1="16" y1="13" x2="8" y2="13" />
-    <line x1="16" y1="17" x2="8" y2="17" />
-    <line x1="10" y1="9" x2="8" y2="9" />
+    <path d="M12 2l2.35 7.16h7.65l-6.18 4.48 2.35 7.16L12 16.32l-6.17 4.48 2.35-7.16L2 9.16h7.65L12 2z"/>
   </svg>
 );
 
@@ -27,10 +23,10 @@ const InvoiceIcon = (props: SVGProps<SVGSVGElement>) => (
 export function AppLogo({ collapsed } : { collapsed?: boolean}) {
   return (
     <Link href="/dashboard" className="flex items-center gap-2 text-primary-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring rounded-sm">
-      <InvoiceIcon className="h-7 w-7 text-sidebar-primary" />
+      <HypernovaIcon className="h-7 w-7 text-sidebar-primary" />
       {!collapsed && (
         <h1 className="text-xl font-bold font-headline text-sidebar-foreground">
-          Invoice Insight
+          Hypernova
         </h1>
       )}
     </Link>
