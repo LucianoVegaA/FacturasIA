@@ -8,8 +8,8 @@ import type { Document } from 'mongodb'; // Import Document type
 async function getInvoicesFromDB(): Promise<Invoice[]> {
   try {
     const { db } = await connectToDatabase();
-    // Fetch as raw Document type, as the structure doesn't fully match Invoice type directly
-    const invoicesCollection = db.collection<Document>("invoices"); 
+    // Fetch as raw Document type, from the "Datos" collection
+    const invoicesCollection = db.collection<Document>("Datos"); 
     const rawInvoices = await invoicesCollection.find({}).sort({ fecha_emision: -1 }).toArray(); // Sort by original date field
     
     // Manually map MongoDB document fields to the Invoice type
@@ -35,43 +35,43 @@ async function getInvoicesFromDB(): Promise<Invoice[]> {
 
       const mappedInvoice: Invoice = {
         _id: doc._id?.toString(),
-        onedrive_file_id: doc.identificador || `fallback_id_${doc._id?.toString()}`,
-        billed_to: doc.facturado_a || "N/A",
-        invoice_number: doc.numero_factura || "N/A",
-        date_of_issue: doc.fecha_emision || new Date().toISOString().split('T')[0],
-        due_date: doc.fecha_vencimiento || null,
-        invoice_description: doc.descripcion || "No description",
+        onedrive_file_id: doc.identificador || `fallback_id_${doc._id?.toString()}`, // Using 'identificador' from your screenshot
+        billed_to: doc.facturado_a || "N/A", // Using 'facturado_a'
+        invoice_number: doc.numero_factura || "N/A", // Using 'numero_factura'
+        date_of_issue: doc.fecha_emision || new Date().toISOString().split('T')[0], // Using 'fecha_emision'
+        due_date: doc.fecha_vencimiento || null, // Using 'fecha_vencimiento'
+        invoice_description: doc.descripcion || "No description", // Using 'descripcion'
         
         items: [], // MongoDB sample doesn't have item details, default to empty array
 
-        subtotal: typeof doc.subtotal === 'number' ? doc.subtotal : 0,
-        // Assuming 'descuento' might be the field name for discount in your DB
+        subtotal: typeof doc.subtotal === 'number' ? doc.subtotal : 0, // Using 'subtotal'
+        // Assuming 'descuento' might be the field name for discount in your DB - not in screenshot
         discount: typeof doc.descuento === 'number' ? doc.descuento : 0, 
-        tax: taxValue,
-        total: totalAmount,
+        tax: taxValue, // Handled 'impuesto'
+        total: totalAmount, // Using 'total'
         
-        terms: doc.terminos || null,
-        conditions_instructions: doc.condiciones_instrucciones || null,
+        terms: doc.terminos || null, // Default if not in DB
+        conditions_instructions: doc.condiciones_instrucciones || null, // Default if not in DB
         
-        company_name: doc.nombre_empresa || "Default Company Inc.",
-        company_mobile: doc.movil_empresa || null,
-        company_email: doc.email_empresa || null,
-        company_website: doc.web_empresa || null,
-        company_address: doc.direccion_empresa || "123 Default St",
-        company_ruc: doc.ruc_empresa || null,
+        company_name: doc.nombre_empresa || "Default Company Inc.", // Default if not in DB
+        company_mobile: doc.movil_empresa || null, // Default if not in DB
+        company_email: doc.email_empresa || null, // Default if not in DB
+        company_website: doc.web_empresa || null, // Default if not in DB
+        company_address: doc.direccion_empresa || "123 Default St", // Default if not in DB
+        company_ruc: doc.ruc_empresa || null, // Default if not in DB
         
-        recipient_name: doc.nombre_destinatario || "Valued Customer",
-        recipient_id: doc.id_destinatario || null,
+        recipient_name: doc.nombre_destinatario || "Valued Customer", // Default if not in DB
+        recipient_id: doc.id_destinatario || null, // Default if not in DB
         
-        bank_account_name: doc.nombre_cuenta_bancaria_banco || null, // Example: map specific field if exists
-        bank_account_number: doc.numero_cuenta_bancaria_entidad || null, // Example: map specific field if exists
-        bank_name: doc.nombre_banco || null,
+        bank_account_name: doc.nombre_cuenta_bancaria_banco || null, // Default if not in DB
+        bank_account_number: doc.numero_cuenta_bancaria_entidad || null, // Default if not in DB
+        bank_name: doc.nombre_banco || null, // Default if not in DB
         
-        numero_cuenta_bancaria: doc.numero_cuenta_bancaria || null, // As per your sample data
+        numero_cuenta_bancaria: doc.numero_cuenta_bancaria || null, // Using 'numero_cuenta_bancaria'
         
-        staffing_percentage: typeof doc.porcentaje_staffing === 'number' ? doc.porcentaje_staffing : 0,
-        proyecto_percentage: typeof doc.porcentaje_proyecto === 'number' ? doc.porcentaje_proyecto : 0,
-        software_percentage: typeof doc.porcentaje_software === 'number' ? doc.porcentaje_software : 0,
+        staffing_percentage: typeof doc.porcentaje_staffing === 'number' ? doc.porcentaje_staffing : 0, // Using 'porcentaje_staffing'
+        proyecto_percentage: typeof doc.porcentaje_proyecto === 'number' ? doc.porcentaje_proyecto : 0, // Using 'porcentaje_proyecto'
+        software_percentage: typeof doc.porcentaje_software === 'number' ? doc.porcentaje_software : 0, // Using 'porcentaje_software'
         
         status: status,
       };
