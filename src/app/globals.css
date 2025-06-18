@@ -28,6 +28,9 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
+    --success: 140 60% 45%; /* A pleasant green */
+    --success-foreground: 0 0% 100%; /* White */
+
     --border: 0 0% 88%; /* Slightly darker border */
     --input: 0 0% 92%; /* Lighter input background */
     --ring: 187 100% 42%; /* Teal for focus rings */
@@ -76,6 +79,9 @@
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
+
+    --success: 140 60% 55%; /* Slightly lighter green for dark mode */
+    --success-foreground: 0 0% 10%; /* Dark text on green */
 
     --border: 231 20% 25%;
     --input: 231 20% 25%;

@@ -38,10 +38,10 @@ export function InvoiceTable({ invoices, onViewSummary, isLoading = false }: Inv
     currentPage * ITEMS_PER_PAGE
   );
 
-  const getStatusBadgeVariant = (status: InvoiceStatus) => {
+  const getStatusBadgeVariant = (status: InvoiceStatus): ReturnType<typeof import('@/components/ui/badge').badgeVariants>['variant']=> {
     switch (status) {
       case "Paid":
-        return "default"; // Will use primary color if not 'success' variant is defined
+        return "success";
       case "Unpaid":
         return "secondary";
       case "Overdue":
@@ -53,9 +53,6 @@ export function InvoiceTable({ invoices, onViewSummary, isLoading = false }: Inv
     }
   };
   
-  // Custom styling for 'Paid' badge to be greenish if possible or use primary.
-  // Tailwind doesn't have green by default for badges, so we'd use 'default' (primary) or make a custom class.
-  // For simplicity, 'default' (primary) will be used.
 
   if (isLoading) {
     return (
@@ -104,7 +101,7 @@ export function InvoiceTable({ invoices, onViewSummary, isLoading = false }: Inv
                     <TableCell>{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : 'N/A'}</TableCell>
                     <TableCell className="text-right">${invoice.total.toFixed(2)}</TableCell>
                     <TableCell>
-                      <Badge variant={getStatusBadgeVariant(invoice.status)} className={invoice.status === 'Paid' ? 'bg-green-500 hover:bg-green-600 text-white' : ''}>
+                      <Badge variant={getStatusBadgeVariant(invoice.status)}>
                         {invoice.status}
                       </Badge>
                     </TableCell>
