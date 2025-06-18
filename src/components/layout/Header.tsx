@@ -1,6 +1,7 @@
+
 "use client";
 
-import { Bell, UserCircle, Search, Menu } from 'lucide-react';
+import { Bell, UserCircle, Search } from 'lucide-react'; // Removed Menu import
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,14 +12,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
+// Removed SidebarTrigger and useSidebar imports
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { logout } from '@/lib/authService';
 
 export function Header() {
-  const { isMobile } = useSidebar();
+  // Removed useSidebar hook and isMobile constant
   const router = useRouter();
   const { toast } = useToast();
 
@@ -30,16 +31,7 @@ export function Header() {
   
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6 shadow-sm">
-      {isMobile ? (
-         <SidebarTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Toggle Sidebar</span>
-            </Button>
-          </SidebarTrigger>
-      ) : (
-         <SidebarTrigger className="hidden md:flex"/>
-      )}
+      {/* Removed SidebarTrigger and conditional rendering based on isMobile */}
      
       <div className="flex-1">
         {/* Can add breadcrumbs or page title here */}
