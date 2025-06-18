@@ -12,13 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import type { Invoice } from "@/lib/types";
-import { ChevronLeft, ChevronRight, MoreHorizontal, Edit, Trash2, Download } from "lucide-react"; 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ChevronLeft, ChevronRight, Download } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface InvoiceTableProps {
@@ -52,7 +46,6 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
                 <TableHead>Due Date</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead className="text-center">Download PDF</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -79,29 +72,11 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
                         </Button>
                       )}
                     </TableCell>
-                    <TableCell className="text-center">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Edit className="mr-2 h-4 w-4" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive-foreground bg-destructive hover:bg-destructive/90 focus:bg-destructive/90 focus:text-destructive-foreground">
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     No invoices found.
                   </TableCell>
                 </TableRow>
@@ -138,3 +113,4 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
     </Card>
   );
 }
+
