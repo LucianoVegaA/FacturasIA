@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -12,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Invoice, InvoiceStatus } from "@/lib/types";
-import { Eye, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreHorizontal, Edit, Trash2 } from "lucide-react"; // Removed Eye
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,13 +24,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface InvoiceTableProps {
   invoices: Invoice[];
-  onViewSummary: (invoice: Invoice) => void;
-  isLoading?: boolean;
+  // Removed onViewSummary and isLoading props
 }
 
 const ITEMS_PER_PAGE = 10;
 
-export function InvoiceTable({ invoices, onViewSummary, isLoading = false }: InvoiceTableProps) {
+export function InvoiceTable({ invoices }: InvoiceTableProps) {
   const [currentPage, setCurrentPage] = React.useState(1);
 
   const totalPages = Math.ceil(invoices.length / ITEMS_PER_PAGE);
@@ -53,25 +53,6 @@ export function InvoiceTable({ invoices, onViewSummary, isLoading = false }: Inv
     }
   };
   
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Invoices</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-muted rounded animate-pulse" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-
   return (
     <Card className="shadow-lg">
       <CardHeader>
@@ -83,7 +64,7 @@ export function InvoiceTable({ invoices, onViewSummary, isLoading = false }: Inv
             <TableHeader>
               <TableRow>
                 <TableHead>Invoice #</TableHead>
-                <TableHead>Client</TableHead>
+                <TableHead>Client (Provedor)</TableHead>
                 <TableHead>Issue Date</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -114,11 +95,13 @@ export function InvoiceTable({ invoices, onViewSummary, isLoading = false }: Inv
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onViewSummary(invoice)}>
-                            <Eye className="mr-2 h-4 w-4" /> View Summary
+                          {/* Removed View Summary option */}
+                          <DropdownMenuItem>
+                            <Edit className="mr-2 h-4 w-4" /> Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive-foreground bg-destructive hover:bg-destructive/90">Delete</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive-foreground bg-destructive hover:bg-destructive/90 focus:bg-destructive/90 focus:text-destructive-foreground">
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
