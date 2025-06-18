@@ -11,9 +11,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import type { Invoice, InvoiceStatus } from "@/lib/types";
-import { ChevronLeft, ChevronRight, MoreHorizontal, Edit, Trash2 } from "lucide-react"; // Removed Eye
+import type { Invoice } from "@/lib/types";
+import { ChevronLeft, ChevronRight, MoreHorizontal, Edit, Trash2, Download } from "lucide-react"; 
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +23,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface InvoiceTableProps {
   invoices: Invoice[];
-  // Removed onViewSummary and isLoading props
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -37,21 +35,6 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
-
-  const getStatusBadgeVariant = (status: InvoiceStatus): ReturnType<typeof import('@/components/ui/badge').badgeVariants>['variant']=> {
-    switch (status) {
-      case "Paid":
-        return "success";
-      case "Unpaid":
-        return "secondary";
-      case "Overdue":
-        return "destructive";
-      case "Draft":
-        return "outline";
-      default:
-        return "outline";
-    }
-  };
   
   return (
     <Card className="shadow-lg">
@@ -68,7 +51,7 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
                 <TableHead>Issue Date</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead className="text-right">Total</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead className="text-center">Download PDF</TableHead>
                 <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -81,10 +64,20 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
                     <TableCell>{new Date(invoice.date_of_issue).toLocaleDateString()}</TableCell>
                     <TableCell>{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : 'N/A'}</TableCell>
                     <TableCell className="text-right">${invoice.total.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(invoice.status)}>
-                        {invoice.status}
-                      </Badge>
+                    <TableCell className="text-center">
+                      {invoice.pdf_url ? (
+                        <Button asChild variant="outline" size="sm">
+                          <a href={invoice.pdf_url} target="_blank" rel="noopener noreferrer">
+                            <Download className="mr-2 h-4 w-4" />
+                            PDF
+                          </a>
+                        </Button>
+                      ) : (
+                        <Button variant="outline" size="sm" disabled>
+                          <Download className="mr-2 h-4 w-4" />
+                          PDF
+                        </Button>
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
                       <DropdownMenu>
@@ -95,7 +88,6 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          {/* Removed View Summary option */}
                           <DropdownMenuItem>
                             <Edit className="mr-2 h-4 w-4" /> Edit
                           </DropdownMenuItem>

@@ -1,5 +1,4 @@
 
-export type InvoiceStatus = 'Paid' | 'Unpaid' | 'Overdue' | 'Draft';
 
 export interface InvoiceItemDetail {
   description: string;
@@ -54,7 +53,7 @@ export interface Invoice {
   staffing_percentage: number;
   proyecto_percentage: number;
   software_percentage: number;
-  status: InvoiceStatus;
+  pdf_url: string | null; // Added for PDF download link
 }
 
 // Helper function to transform raw invoice data (with flat items) to structured Invoice type
@@ -74,17 +73,10 @@ export function transformRawInvoice(rawData: any): Invoice {
     });
   }
 
-  let status: InvoiceStatus = 'Unpaid';
-  if (rawData.total === 0) status = 'Paid';
-  else if (rawData.due_date && new Date(rawData.due_date) < new Date() && rawData.total > 0) {
-    status = 'Overdue';
-  }
-
-
   const transformed: Invoice = {
     ...rawData,
     items,
-    status,
+    pdf_url: rawData.pdf_url || null,
   };
 
   if (rawData._id && typeof rawData._id !== 'string') {
