@@ -51,7 +51,7 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
             <TableBody>
               {paginatedInvoices.length > 0 ? (
                 paginatedInvoices.map((invoice) => (
-                  <TableRow key={invoice.invoice_number}>
+                  <TableRow key={invoice._id || invoice.invoice_number}> {/* Use _id as primary key */}
                     <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
                     <TableCell>{invoice.billed_to}</TableCell>
                     <TableCell>{new Date(invoice.date_of_issue).toLocaleDateString()}</TableCell>
