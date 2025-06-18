@@ -28,15 +28,14 @@ async function getInvoicesFromDB(): Promise<Invoice[]> {
 export default async function DashboardPage() {
   const initialInvoices = await getInvoicesFromDB();
 
-  const availableMonths = React.useMemo(() => {
-    const months = new Set<string>();
-    initialInvoices.forEach(inv => {
-      if (inv.date_of_issue) {
-        months.add(inv.date_of_issue.substring(0, 7)); // "YYYY-MM"
-      }
-    });
-    return Array.from(months).sort((a, b) => b.localeCompare(a)); // Sort descending
-  }, [initialInvoices]);
+  // Calculate availableMonths directly without React.useMemo
+  const monthsSet = new Set<string>();
+  initialInvoices.forEach(inv => {
+    if (inv.date_of_issue) {
+      monthsSet.add(inv.date_of_issue.substring(0, 7)); // "YYYY-MM"
+    }
+  });
+  const availableMonths = Array.from(monthsSet).sort((a, b) => b.localeCompare(a)); // Sort descending
 
   return (
     <div className="flex flex-col gap-6">
