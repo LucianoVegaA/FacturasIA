@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -26,15 +27,11 @@ export function InvoiceSummaryCard({ invoice, onClose }: InvoiceSummaryCardProps
         setSummary(null);
         try {
           // The AI flow expects invoiceData as a JSON string.
-          // We need to pass the original flat structure if the AI was trained on it.
-          // For this example, we assume `invoice` has all necessary fields,
-          // including the flat `item_X_...` ones if the AI model relies on them.
-          // If not, we might need to reconstruct that from `invoice.items`.
-          // For now, let's stringify the passed invoice object.
+          // We pass a copy of the invoice object, from which the 'items' array
+          // is removed, as the AI model might expect the original flat item structure.
+          // The `Invoice` type now includes optional item_X_... fields.
           const rawInvoiceData = { ...invoice };
-          // Remove the transformed 'items' array as the AI model expects flat item structure
-          delete (rawInvoiceData as any).items; 
-
+          delete (rawInvoiceData as Partial<Invoice>).items; // Remove transformed items, rely on item_X_... fields
 
           const result = await summarizeInvoice({ invoiceData: JSON.stringify(rawInvoiceData) });
           setSummary(result);
