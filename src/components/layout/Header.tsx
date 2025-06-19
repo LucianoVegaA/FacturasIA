@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Bell, UserCircle, Search, LogOut } from 'lucide-react';
@@ -35,12 +36,17 @@ export function Header() {
 
   const handleLogout = async () => {
     try {
-      await instance.logoutRedirect({
-        account: activeAccount,
-        postLogoutRedirectUri: "/", // Redirect to home page after logout
+      // For popup logout, the user is logged out of the local session.
+      // The popup window handles the Azure AD logout and then closes.
+      await instance.logoutPopup({
+        account: activeAccount, // Optional: specify account for multi-account scenarios
+        postLogoutRedirectUri: "/", // This URI is opened in the popup and then it closes. Main window remains.
+        mainWindowRedirectUri: "/" // Redirects the main window after popup closes
       });
-      // MSAL handles redirect, so toast might not be visible.
+      // MSAL handles redirect, so toast might not be visible immediately if main window navigates.
       // toast({ title: "Logged Out", description: "You have been successfully logged out." });
+      // Router push might be redundant if mainWindowRedirectUri works as expected.
+      // router.push("/"); 
     } catch (error) {
       console.error("Logout error:", error);
       toast({ variant: "destructive", title: "Logout Failed", description: "Could not log you out. Please try again." });
@@ -84,7 +90,6 @@ export function Header() {
               <UserCircle className="h-6 w-6" />
               <div className="flex flex-col items-start text-xs">
                  <span className="font-medium truncate max-w-[100px]">{activeAccount.name || activeAccount.username}</span>
-                 {/* <span className="text-muted-foreground truncate max-w-[100px]">{activeAccount.username}</span> */}
               </div>
             </Button>
           </DropdownMenuTrigger>
