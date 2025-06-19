@@ -2,11 +2,12 @@
 "use client";
 
 import * as React from "react";
+import { Upload } from "lucide-react"; // Import Upload icon
 import { InvoiceTable } from "@/components/dashboard/InvoiceTable";
 import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/InvoiceFilter";
 import type { Invoice } from "@/lib/types";
 import { InvoiceSummaryCard } from "@/components/dashboard/InvoiceSummaryCard";
-// Removed StatCard and InvoiceMetricsChart related imports
+import { Button } from "@/components/ui/button"; // Import Button component
 
 interface InvoiceDashboardClientProps {
   initialInvoices: Invoice[];
@@ -17,9 +18,6 @@ export function InvoiceDashboardClient({ initialInvoices, availableMonths }: Inv
   const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>(initialInvoices);
   const [filters, setFilters] = React.useState<InvoiceFilters>({ month: "all", searchTerm: "" });
   const [selectedInvoiceForSummary, setSelectedInvoiceForSummary] = React.useState<Invoice | null>(null);
-  // Removed selectedInvoiceForChart state
-
-  // Removed totalInvoiced, invoicesDue, invoicesPaid memos
 
   React.useEffect(() => {
     const lowerSearchTerm = filters.searchTerm.toLowerCase();
@@ -36,22 +34,30 @@ export function InvoiceDashboardClient({ initialInvoices, availableMonths }: Inv
     });
     
     setFilteredInvoices(newFilteredInvoices);
-    // Removed logic for deselecting selectedInvoiceForChart
 
   }, [filters, initialInvoices]);
 
   const handleRowClick = (invoice: Invoice) => {
     setSelectedInvoiceForSummary(invoice);
-    // Removed setSelectedInvoiceForChart(invoice);
   };
 
   const handleCloseSummary = () => {
     setSelectedInvoiceForSummary(null);
   };
 
+  const handleImportToSam = () => {
+    console.log("Import Invoices to SAM button clicked");
+    // Placeholder for actual import functionality
+  };
+
   return (
     <>
-      {/* Removed StatCard components */}
+      <div className="mb-4 flex justify-end">
+        <Button onClick={handleImportToSam} variant="outline">
+          <Upload className="mr-2 h-4 w-4" />
+          Import Invoices to SAM
+        </Button>
+      </div>
       <InvoiceFilter 
         filters={filters} 
         setFilters={setFilters} 
@@ -61,7 +67,6 @@ export function InvoiceDashboardClient({ initialInvoices, availableMonths }: Inv
       {selectedInvoiceForSummary && (
         <InvoiceSummaryCard invoice={selectedInvoiceForSummary} onClose={handleCloseSummary} />
       )}
-      {/* Removed InvoiceMetricsChart component */}
     </>
   );
 }
