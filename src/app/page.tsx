@@ -36,11 +36,11 @@ export default function LoginPage() {
           AWS Cognito integration for login to be implemented.
         </p>
          <div className="relative h-64 w-full mt-8 rounded-lg overflow-hidden shadow-xl">
-            <Image 
-                src="https://placehold.co/600x400.png" 
+            <Image
+                src="https://placehold.co/600x400.png"
                 alt="Financial data illustration"
-                layout="fill"
-                objectFit="cover"
+                fill
+                className="object-cover"
                 data-ai-hint="finance data"
             />
         </div>
