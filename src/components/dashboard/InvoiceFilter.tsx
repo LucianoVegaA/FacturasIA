@@ -14,11 +14,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-// Removed DateRangePicker import as it's not used for this simplified version
 
 export interface InvoiceFilters {
   month: string; // "all" or "YYYY-MM"
-  provedor: string;
+  searchTerm: string; // Changed from provedor to searchTerm
 }
 
 interface InvoiceFilterProps {
@@ -29,8 +28,8 @@ interface InvoiceFilterProps {
 
 export function InvoiceFilter({ filters, setFilters, availableMonths }: InvoiceFilterProps) {
 
-  const handleProvedorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters(prev => ({ ...prev, provedor: event.target.value }));
+  const handleSearchTermChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters(prev => ({ ...prev, searchTerm: event.target.value }));
   };
 
   const handleMonthChange = (value: string) => {
@@ -38,7 +37,7 @@ export function InvoiceFilter({ filters, setFilters, availableMonths }: InvoiceF
   };
   
   const clearFilters = () => {
-    setFilters({ month: "all", provedor: "" });
+    setFilters({ month: "all", searchTerm: "" });
   };
 
   const formatMonthForDisplay = (monthYear: string) => {
@@ -59,9 +58,9 @@ export function InvoiceFilter({ filters, setFilters, availableMonths }: InvoiceF
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by Provedor (Client)..."
-              value={filters.provedor}
-              onChange={handleProvedorChange}
+              placeholder="Search by Client or Invoice #..." // Updated placeholder
+              value={filters.searchTerm}
+              onChange={handleSearchTermChange}
               className="pl-8"
             />
           </div>
