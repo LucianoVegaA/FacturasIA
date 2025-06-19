@@ -1,49 +1,59 @@
 import { AzureLoginButton } from '@/components/auth/AzureLoginButton';
 import Image from 'next/image';
 
+const HyperNovaLabsIcon = () => (
+  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="48" height="48" rx="12" fill="hsl(var(--primary))"/>
+    <circle cx="24" cy="24" r="14" fill="hsl(var(--accent))" fillOpacity="0.8"/>
+    <circle cx="24" cy="24" r="8" fill="hsl(var(--primary))" />
+  </svg>
+);
+
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center">
-            <div className="flex items-center gap-2 text-primary mb-6">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-8 w-8 text-primary"
-                >
-                    <path d="M12 2l2.35 7.16h7.65l-6.18 4.48 2.35 7.16L12 16.32l-6.17 4.48 2.35-7.16L2 9.16h7.65L12 2z"/>
-                </svg>
-                <h1 className="text-3xl font-bold text-primary">
-                    Hypernova
-                </h1>
-            </div>
-          <p className="mt-2 text-center text-sm text-muted-foreground">
-            Sign in with your Microsoft account to access your dashboard
+    <div className="flex min-h-screen bg-background">
+      {/* Left Column */}
+      <div className="hidden md:flex w-1/3 bg-card p-10 flex-col justify-center items-start space-y-8">
+        <div className="space-y-4">
+          <div className="flex items-center space-x-3">
+            <HyperNovaLabsIcon />
+            <span className="text-3xl font-bold text-primary">Hyper Nova Labs</span>
+          </div>
+          <h2 className="text-2xl font-semibold text-foreground ml-2">HNL Planner</h2>
+        </div>
+        <div className="mt-auto text-xs text-muted-foreground">
+          &copy; {new Date().getFullYear()} Hyper Nova Labs. All rights reserved.
+        </div>
+      </div>
+
+      {/* Right Column */}
+      <div className="w-full md:w-2/3 relative flex items-center justify-center p-4">
+        <Image
+          src="https://placehold.co/1200x800.png"
+          alt="Office background"
+          layout="fill"
+          objectFit="cover"
+          className="absolute inset-0 z-0"
+          data-ai-hint="office collaboration"
+          priority
+        />
+        {/* Sign-in Card */}
+        <div className="relative z-10 bg-card p-8 md:p-10 rounded-xl shadow-2xl w-full max-w-md space-y-6">
+          <div className="text-center md:text-left">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Sign In
+            </h1>
+            <p className="text-muted-foreground">
+              Usa tu cuenta de Microsoft para continuar.
+            </p>
+          </div>
+          
+          <AzureLoginButton />
+
+          <p className="text-center text-xs text-muted-foreground pt-4">
+            Secured by Microsoft Azure
           </p>
         </div>
-        
-        <AzureLoginButton />
-
-         <div className="relative h-64 w-full mt-12 rounded-lg overflow-hidden shadow-xl">
-            <Image
-                src="https://placehold.co/600x400.png"
-                alt="Financial data illustration"
-                fill
-                className="object-cover"
-                data-ai-hint="finance data"
-            />
-        </div>
-        <p className="mt-10 text-center text-xs text-muted-foreground">
-          Powered by Azure Active Directory
-        </p>
       </div>
     </div>
   );
