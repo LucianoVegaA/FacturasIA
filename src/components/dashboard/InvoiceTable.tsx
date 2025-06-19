@@ -17,11 +17,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface InvoiceTableProps {
   invoices: Invoice[];
+  onRowClick: (invoice: Invoice) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
 
-export function InvoiceTable({ invoices }: InvoiceTableProps) {
+export function InvoiceTable({ invoices, onRowClick }: InvoiceTableProps) {
   const [currentPage, setCurrentPage] = React.useState(1);
 
   const totalPages = Math.ceil(invoices.length / ITEMS_PER_PAGE);
@@ -51,7 +52,11 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
             <TableBody>
               {paginatedInvoices.length > 0 ? (
                 paginatedInvoices.map((invoice) => (
-                  <TableRow key={invoice._id || invoice.invoice_number}> {/* Use _id as primary key */}
+                  <TableRow 
+                    key={invoice._id || invoice.invoice_number} 
+                    onClick={() => onRowClick(invoice)}
+                    className="cursor-pointer"
+                  >
                     <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
                     <TableCell>{invoice.billed_to}</TableCell>
                     <TableCell>{new Date(invoice.date_of_issue).toLocaleDateString()}</TableCell>
@@ -113,4 +118,3 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
     </Card>
   );
 }
-
