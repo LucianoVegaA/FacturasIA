@@ -1,3 +1,4 @@
+
 import { AzureLoginButton } from '@/components/auth/AzureLoginButton';
 import Image from 'next/image';
 
@@ -31,14 +32,13 @@ export default function LoginPage() {
         <Image
           src="https://placehold.co/1200x800.png"
           alt="Office background"
-          layout="fill"
-          objectFit="cover"
-          className="absolute inset-0 z-0"
+          fill
+          className="absolute inset-0 z-0 object-cover"
           data-ai-hint="office collaboration"
           priority
         />
         {/* Sign-in Card */}
-        <div className="relative z-10 bg-card p-8 md:p-10 rounded-xl shadow-2xl w-full max-w-md space-y-6">
+        <div className="relative z-10 bg-card p-8 md:p-10 rounded-xl shadow-2xl w-full max-w-lg space-y-6">
           <div className="text-center md:text-left">
             <h1 className="text-3xl font-bold text-foreground mb-2">
               Sign In
