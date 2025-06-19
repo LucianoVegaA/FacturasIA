@@ -1,5 +1,6 @@
+
 import { Header } from '@/components/layout/Header';
-import { AuthGuard } from '@/components/auth/AuthGuard';
+import { DashboardGuard } from '@/components/auth/DashboardGuard'; // Changed
 
 export default function DashboardLayout({
   children,
@@ -7,13 +8,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AuthGuard>
+    <DashboardGuard> {/* Changed */}
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-1 flex-col p-4 md:p-6 lg:p-8">
+        <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8"> {/* Ensure flex-col for main content area */}
           {children}
         </main>
       </div>
-    </AuthGuard>
+    </DashboardGuard> {/* Changed */}
   );
 }

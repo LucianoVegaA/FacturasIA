@@ -1,6 +1,14 @@
 
+"use client";
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useIsAuthenticated as useMsalIsAuthenticated } from '@azure/msal-react';
 import { AzureLoginButton } from '@/components/auth/AzureLoginButton';
+import { useDemoAuth } from '@/context/DemoAuthProvider';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Loader2, User } from 'lucide-react';
 
 const HyperNovaLabsIcon = () => (
   <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -11,6 +19,31 @@ const HyperNovaLabsIcon = () => (
 );
 
 export default function LoginPage() {
+  const router = useRouter();
+  const msalIsAuthenticated = useMsalIsAuthenticated();
+  const { isDemoAuthenticated, loginDemo, loading: demoAuthLoading } = useDemoAuth();
+
+  useEffect(() => {
+    if (!demoAuthLoading) {
+      if (msalIsAuthenticated || isDemoAuthenticated) {
+        router.push('/dashboard');
+      }
+    }
+  }, [msalIsAuthenticated, isDemoAuthenticated, demoAuthLoading, router]);
+
+  const handleDemoLogin = () => {
+    loginDemo();
+  };
+
+  if (demoAuthLoading || (!demoAuthLoading && (msalIsAuthenticated || isDemoAuthenticated))) {
+    // Show loader if demo auth is loading OR if already authenticated and redirect is in progress
+    return (
+      <div className="flex min-h-screen bg-background items-center justify-center">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-background">
       {/* Left Column */}
@@ -44,14 +77,35 @@ export default function LoginPage() {
               Sign In
             </h1>
             <p className="text-muted-foreground">
-              Usa tu cuenta de Microsoft para continuar.
+              Usa tu cuenta de Microsoft o continúa como invitado.
             </p>
           </div>
           
           <AzureLoginButton />
 
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">
+                O continúa como
+              </span>
+            </div>
+          </div>
+
+          <Button 
+            onClick={handleDemoLogin} 
+            variant="outline"
+            className="w-full flex items-center justify-center space-x-2 py-3"
+            size="lg"
+          >
+            <User className="h-5 w-5" />
+            <span>Iniciar sesión como Invitado</span>
+          </Button>
+
           <p className="text-center text-xs text-muted-foreground pt-4">
-            Secured by Microsoft Azure
+            Secured by Microsoft Azure for Microsoft accounts.
           </p>
         </div>
       </div>

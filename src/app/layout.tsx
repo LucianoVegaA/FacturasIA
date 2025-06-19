@@ -1,7 +1,9 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { MsalAuthProvider } from '@/components/auth/MsalAuthProvider';
+import { DemoAuthProvider } from '@/context/DemoAuthProvider'; // Added
 
 export const metadata: Metadata = {
   title: 'Invoice Insight',
@@ -23,8 +25,10 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <MsalAuthProvider>
-          {children}
-          <Toaster />
+          <DemoAuthProvider> {/* Added */}
+            {children}
+            <Toaster />
+          </DemoAuthProvider> {/* Added */}
         </MsalAuthProvider>
       </body>
     </html>

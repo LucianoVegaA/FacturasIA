@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Bell, UserCircle, Search, LogOut } from 'lucide-react';
+import { Bell, UserCircle, Search, LogOut, LogIn } from 'lucide-react'; // Added LogIn
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,46 +13,63 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-import { useMsal, useIsAuthenticated } from "@azure/msal-react";
+import { useMsal, useIsAuthenticated as useMsalIsAuthenticated } from "@azure/msal-react";
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import type { AccountInfo } from '@azure/msal-browser';
+import { useDemoAuth } from '@/context/DemoAuthProvider'; // Added
 
 export function Header() {
   const { instance, accounts } = useMsal();
-  const isAuthenticated = useIsAuthenticated();
+  const msalIsAuthenticated = useMsalIsAuthenticated();
+  const { isDemoAuthenticated, demoUser, logoutDemo, loading: demoAuthLoading } = useDemoAuth(); // Added
   const router = useRouter();
   const { toast } = useToast();
-  const [activeAccount, setActiveAccount] = useState<AccountInfo | null>(null);
+  const [activeAccountName, setActiveAccountName] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated && accounts.length > 0) {
-      setActiveAccount(accounts[0]);
-    } else {
-      setActiveAccount(null);
+    if (!demoAuthLoading) { // Ensure demo auth state is loaded
+      if (msalIsAuthenticated && accounts.length > 0) {
+        setActiveAccountName(accounts[0].name || accounts[0].username);
+        setIsAuthenticated(true);
+      } else if (isDemoAuthenticated && demoUser) {
+        setActiveAccountName(demoUser.name);
+        setIsAuthenticated(true);
+      } else {
+        setActiveAccountName(null);
+        setIsAuthenticated(false);
+      }
     }
-  }, [isAuthenticated, accounts]);
+  }, [msalIsAuthenticated, accounts, isDemoAuthenticated, demoUser, demoAuthLoading]);
 
   const handleLogout = async () => {
     try {
-      // For popup logout, the user is logged out of the local session.
-      // The popup window handles the Azure AD logout and then closes.
-      await instance.logoutPopup({
-        account: activeAccount, // Optional: specify account for multi-account scenarios
-        postLogoutRedirectUri: "/", // This URI is opened in the popup and then it closes. Main window remains.
-        mainWindowRedirectUri: "/" // Redirects the main window after popup closes
-      });
-      // MSAL handles redirect, so toast might not be visible immediately if main window navigates.
-      // toast({ title: "Logged Out", description: "You have been successfully logged out." });
-      // Router push might be redundant if mainWindowRedirectUri works as expected.
-      // router.push("/"); 
+      if (msalIsAuthenticated) {
+        await instance.logoutPopup({
+          account: accounts[0] || undefined,
+          mainWindowRedirectUri: "/"
+        });
+      } else if (isDemoAuthenticated) {
+        logoutDemo(); // This already handles router.push('/')
+      }
+      // Toast can be added here if desired, but redirect might happen too fast
     } catch (error) {
       console.error("Logout error:", error);
       toast({ variant: "destructive", title: "Logout Failed", description: "Could not log you out. Please try again." });
     }
   };
   
+  // Don't render header content until auth status is determined
+  if (demoAuthLoading && !isAuthenticated) {
+    return (
+      <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6 shadow-sm">
+        {/* Placeholder or minimal loader for header */}
+      </header>
+    );
+  }
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6 shadow-sm">
      
@@ -83,19 +100,19 @@ export function Header() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {isAuthenticated && activeAccount ? (
+      {isAuthenticated && activeAccountName ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2 rounded-full px-2 py-1 h-auto">
               <UserCircle className="h-6 w-6" />
               <div className="flex flex-col items-start text-xs">
-                 <span className="font-medium truncate max-w-[100px]">{activeAccount.name || activeAccount.username}</span>
+                 <span className="font-medium truncate max-w-[100px]">{activeAccountName}</span>
               </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuItem disabled>{activeAccount.name || activeAccount.username}</DropdownMenuItem>
+            <DropdownMenuItem disabled>{activeAccountName}</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/dashboard/settings">Settings</Link>
