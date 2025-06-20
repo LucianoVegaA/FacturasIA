@@ -57,17 +57,17 @@ export interface Invoice {
   pdf_url: string | null;
 }
 
+export interface ErrorInvoice extends Invoice {
+  error_description?: string;
+}
+
 // Helper function to transform raw invoice data (with flat items) to structured Invoice type
-// This might be useful if your MongoDB data is stored in the flat "raw" format.
-// If your MongoDB data is already structured like the Invoice interface, you might not need this.
 export function transformRawInvoice(rawData: any): Invoice {
   const items: InvoiceItemDetail[] = [];
   for (let i = 0; ; i++) {
     if (rawData[`item_${i}_description`] === undefined && rawData[`item_${i}_amount`] === undefined && rawData[`item_${i}_rate`] === undefined && rawData[`item_${i}_quantity`] === undefined) {
-      // Break if no identifying part of an item is present
       break;
     }
-    // Only add item if it has some content
     if (rawData[`item_${i}_description`] || rawData[`item_${i}_amount`] || rawData[`item_${i}_rate`] || rawData[`item_${i}_quantity`]) {
       items.push({
         description: rawData[`item_${i}_description`] || '',
@@ -79,10 +79,9 @@ export function transformRawInvoice(rawData: any): Invoice {
   }
 
   const transformed: Invoice = {
-    ...rawData, // Spread rawData first to retain all original fields including item_X_...
-    items,      // Then override/add the structured items array
+    ...rawData, 
+    items,      
     pdf_url: rawData.pdf_url || null,
-    // Ensure numeric fields are numbers, defaulting to 0 if not
     subtotal: typeof rawData.subtotal === 'number' ? rawData.subtotal : 0,
     discount: typeof rawData.discount === 'number' ? rawData.discount : 0,
     tax: typeof rawData.tax === 'number' ? rawData.tax : 0,
@@ -90,7 +89,6 @@ export function transformRawInvoice(rawData: any): Invoice {
     staffing_percentage: typeof rawData.staffing_percentage === 'number' ? rawData.staffing_percentage : 0,
     proyecto_percentage: typeof rawData.proyecto_percentage === 'number' ? rawData.proyecto_percentage : 0,
     software_percentage: typeof rawData.software_percentage === 'number' ? rawData.software_percentage : 0,
-    // Ensure string fields are strings, defaulting to empty or specific N/A
     invoice_number: rawData.invoice_number || "N/A",
     billed_to: rawData.billed_to || "N/A",
     date_of_issue: rawData.date_of_issue || new Date().toISOString().split('T')[0],
@@ -105,4 +103,12 @@ export function transformRawInvoice(rawData: any): Invoice {
   }
   
   return transformed;
+}
+
+export function transformRawErrorInvoice(rawData: any): ErrorInvoice {
+  const baseInvoice = transformRawInvoice(rawData);
+  return {
+    ...baseInvoice,
+    error_description: rawData.error_description || "No error description provided.",
+  };
 }

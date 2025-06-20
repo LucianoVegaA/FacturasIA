@@ -2,19 +2,21 @@
 "use client";
 
 import * as React from "react";
-import { Upload } from "lucide-react"; // Import Upload icon
+import { Upload } from "lucide-react"; 
 import { InvoiceTable } from "@/components/dashboard/InvoiceTable";
 import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/InvoiceFilter";
-import type { Invoice } from "@/lib/types";
+import type { Invoice, ErrorInvoice } from "@/lib/types";
 import { InvoiceSummaryCard } from "@/components/dashboard/InvoiceSummaryCard";
-import { Button } from "@/components/ui/button"; // Import Button component
+import { ErrorInvoiceList } from "@/components/dashboard/ErrorInvoiceList";
+import { Button } from "@/components/ui/button"; 
 
 interface InvoiceDashboardClientProps {
   initialInvoices: Invoice[];
+  initialErrorInvoices: ErrorInvoice[];
   availableMonths: string[];
 }
 
-export function InvoiceDashboardClient({ initialInvoices, availableMonths }: InvoiceDashboardClientProps) {
+export function InvoiceDashboardClient({ initialInvoices, initialErrorInvoices, availableMonths }: InvoiceDashboardClientProps) {
   const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>(initialInvoices);
   const [filters, setFilters] = React.useState<InvoiceFilters>({ month: "all", searchTerm: "" });
   const [selectedInvoiceForSummary, setSelectedInvoiceForSummary] = React.useState<Invoice | null>(null);
@@ -47,12 +49,14 @@ export function InvoiceDashboardClient({ initialInvoices, availableMonths }: Inv
 
   const handleImportToSam = () => {
     console.log("Import Invoices to SAM button clicked");
-    // Placeholder for actual import functionality
   };
 
   return (
     <>
-      <div className="mb-4 flex justify-end">
+      {initialErrorInvoices.length > 0 && (
+        <ErrorInvoiceList errorInvoices={initialErrorInvoices} />
+      )}
+      <div className="my-4 flex justify-end"> {/* Added margin-top/bottom for spacing */}
         <Button onClick={handleImportToSam} variant="outline">
           <Upload className="mr-2 h-4 w-4" />
           Import Invoices to SAM
