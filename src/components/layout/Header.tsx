@@ -1,9 +1,8 @@
 
 "use client";
 
-import { Bell, UserCircle, LogOut, LogIn } from 'lucide-react'; // Added LogIn
+import { Bell, UserCircle, LogOut, LogIn } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input'; // Removed Input import
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +55,7 @@ export function Header() {
       }
     } catch (error) {
       console.error("Logout error:", error);
-      toast({ variant: "destructive", title: "Logout Failed", description: "Could not log you out. Please try again." });
+      toast({ variant: "destructive", title: "Fallo al Cerrar Sesión", description: "No se pudo cerrar la sesión. Por favor, inténtelo de nuevo." });
     }
   };
   
@@ -71,22 +70,21 @@ export function Header() {
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6 shadow-sm">
      
       <div className="flex-1 flex items-center">
-        <h2 className="text-xl font-semibold text-foreground">Invoices</h2>
+        <h2 className="text-xl font-semibold text-foreground">Facturas</h2>
       </div>
 
-      {/* Removed search input section */}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="rounded-full">
             <Bell className="h-5 w-5" />
-            <span className="sr-only">Toggle notifications</span>
+            <span className="sr-only">Alternar notificaciones</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+          <DropdownMenuLabel>Notificaciones</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>No new notifications</DropdownMenuItem>
+          <DropdownMenuItem>No hay notificaciones nuevas</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -101,24 +99,24 @@ export function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
             <DropdownMenuItem disabled>{activeAccountName}</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/dashboard/settings">Settings</Link>
+              <Link href="/dashboard/settings">Configuración</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>Support</DropdownMenuItem>
+            <DropdownMenuItem>Soporte</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive-foreground focus:bg-destructive">
               <LogOut className="mr-2 h-4 w-4" />
-              Logout
+              Cerrar Sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (
          <Button variant="outline" onClick={() => router.push('/')}>
             <LogIn className="mr-2 h-4 w-4" />
-            Sign In
+            Iniciar Sesión
          </Button>
       )}
     </header>

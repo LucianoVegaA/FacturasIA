@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -15,18 +16,18 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
-} from '@/components/ui/sidebar'; // Assuming sidebar is a ShadCN or custom component
+} from '@/components/ui/sidebar'; 
 import { Button } from '@/components/ui/button';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/invoices', label: 'Invoices', icon: FileText },
-  { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
-  { href: '/dashboard/clients', label: 'Clients', icon: Users },
-  { href: '/dashboard/projects', label: 'Projects', icon: Briefcase },
+  { href: '/dashboard', label: 'Tablero', icon: LayoutDashboard },
+  { href: '/dashboard/invoices', label: 'Facturas', icon: FileText },
+  { href: '/dashboard/reports', label: 'Reportes', icon: BarChart3 },
+  { href: '/dashboard/clients', label: 'Clientes', icon: Users },
+  { href: '/dashboard/projects', label: 'Proyectos', icon: Briefcase },
 ];
 
-const settingsItem = { href: '/dashboard/settings', label: 'Settings', icon: Settings };
+const settingsItem = { href: '/dashboard/settings', label: 'Configuración', icon: Settings };
 
 
 export function AppSidebar() {

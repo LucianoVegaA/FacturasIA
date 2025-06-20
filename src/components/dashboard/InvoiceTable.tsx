@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import type { Invoice } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Download, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown, Upload } from "lucide-react"; // Added Upload
+import { ChevronLeft, ChevronRight, Download, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown, Upload } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -40,7 +40,7 @@ interface InvoiceTableProps {
   sortKey: keyof Invoice | null;
   sortOrder: 'asc' | 'desc' | null;
   onSort: (key: keyof Invoice) => void;
-  onImportToSam?: () => void; // Added prop for SAM import handler
+  onImportToSam?: () => void; 
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -105,13 +105,13 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
 
   return (
     <>
-      <Card className="shadow-lg mt-6"> {/* Added mt-6 for spacing from filter */}
+      <Card className="shadow-lg mt-6"> 
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Invoice Records</CardTitle>
+          <CardTitle>Registros de Facturas</CardTitle>
           {onImportToSam && (
             <Button onClick={onImportToSam} variant="outline" size="sm">
               <Upload className="mr-2 h-4 w-4" />
-              Import Invoices to SAM
+              Importar Facturas a SAM
             </Button>
           )}
         </CardHeader>
@@ -120,13 +120,13 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
             <Table>
               <TableHeader>
                 <TableRow>
-                  <SortableHeader columnKey="invoice_number" title="Invoice #" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
-                  <SortableHeader columnKey="billed_to" title="Client (Provedor)" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
-                  <SortableHeader columnKey="date_of_issue" title="Issue Date" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
-                  <SortableHeader columnKey="due_date" title="Due Date" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
+                  <SortableHeader columnKey="invoice_number" title="Factura N°" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
+                  <SortableHeader columnKey="billed_to" title="Cliente (Proveedor)" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
+                  <SortableHeader columnKey="date_of_issue" title="Fecha Emisión" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
+                  <SortableHeader columnKey="due_date" title="Fecha Vencimiento" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
                   <SortableHeader columnKey="numero_cuenta_bancaria" title="Número de Cuenta" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
                   <SortableHeader columnKey="total" title="Total" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} className="text-right" />
-                  <TableHead className="text-center">Download PDF</TableHead>
+                  <TableHead className="text-center">Descargar PDF</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -150,7 +150,7 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
                               className="w-[150px] h-9 text-xs"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <SelectValue placeholder="Assign Account" />
+                              <SelectValue placeholder="Asignar Cuenta" />
                             </SelectTrigger>
                             <SelectContent>
                               {accountOptions.map(option => (
@@ -185,7 +185,7 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center">
-                      No invoices found.
+                      No se encontraron facturas.
                     </TableCell>
                   </TableRow>
                 )}
@@ -201,10 +201,10 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
-                Previous
+                Anterior
               </Button>
               <span className="text-sm text-muted-foreground">
-                Page {currentPage} of {totalPages}
+                Página {currentPage} de {totalPages}
               </span>
               <Button
                 variant="outline"
@@ -212,7 +212,7 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
                 onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
               >
-                Next
+                Siguiente
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -226,20 +226,20 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center">
                 <AlertTriangle className="mr-2 h-5 w-5 text-destructive" />
-                Confirm Account Change
+                Confirmar Cambio de Cuenta
               </AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to change the account number for invoice
+                ¿Está seguro de que desea cambiar el número de cuenta para la factura
                 {' '}<strong>{invoices.find(inv => inv._id === pendingUpdate.invoiceId)?.invoice_number || 'N/A'}</strong>
-                {' '}to <strong>{pendingUpdate.newAccountNumber}</strong>?
+                {' '}a <strong>{pendingUpdate.newAccountNumber}</strong>?
                 <br />
-                This action cannot be undone.
+                Esta acción no se puede deshacer.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={cancelAccountChange}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel onClick={cancelAccountChange}>Cancelar</AlertDialogCancel>
               <AlertDialogAction onClick={confirmAccountChange} className="bg-destructive hover:bg-destructive/90">
-                Confirm Change
+                Confirmar Cambio
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

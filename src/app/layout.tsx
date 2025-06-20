@@ -7,7 +7,7 @@ import { DemoAuthProvider } from '@/context/DemoAuthProvider'; // Added
 
 export const metadata: Metadata = {
   title: 'Invoice Insight',
-  description: 'Manage and analyze your invoices with AI-powered insights.',
+  description: 'Gestione y analice sus facturas con información impulsada por IA.',
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

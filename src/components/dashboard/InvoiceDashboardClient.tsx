@@ -129,7 +129,7 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
   };
 
   const handleImportToSam = () => {
-    console.log("Import Invoices to SAM button clicked");
+    console.log("Importar Facturas a SAM button clicked");
     // const invoicesToImport = managedInvoices.filter(inv => inv.numero_cuenta_bancaria && inv.numero_cuenta_bancaria !== 'N/A');
     // console.log("Invoices ready for SAM import:", invoicesToImport);
   };
@@ -149,14 +149,14 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
 
     if (result.success) {
       toast({
-        title: "Account Updated",
-        description: `Invoice account number successfully updated to ${newAccountNumber}.`,
+        title: "Cuenta Actualizada",
+        description: `El número de cuenta de la factura se actualizó correctamente a ${newAccountNumber}.`,
         variant: "default", 
       });
     } else {
       toast({
-        title: "Update Failed",
-        description: result.error || "Could not update the account number in the database. Please try again.",
+        title: "Actualización Fallida",
+        description: result.error || "No se pudo actualizar el número de cuenta en la base de datos. Por favor, inténtelo de nuevo.",
         variant: "destructive",
       });
       // Revert optimistic update on failure
@@ -169,7 +169,6 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
     <>
       <ErrorFileList errorFiles={initialErrorFiles} />
       
-      {/* Removed "Import Invoices to SAM" button from here */}
       <InvoiceFilter 
         filters={filters} 
         setFilters={setFilters} 
@@ -183,7 +182,7 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
         sortKey={sortKey}
         sortOrder={sortOrder}
         onSort={handleSort}
-        onImportToSam={handleImportToSam} // Pass the handler function
+        onImportToSam={handleImportToSam} 
       />
       {selectedInvoiceForSummary && (
         <InvoiceSummaryCard invoice={selectedInvoiceForSummary} onClose={handleCloseSummary} />

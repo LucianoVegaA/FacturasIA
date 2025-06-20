@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -24,7 +25,7 @@ export function InvoiceMetricsChart({ invoices, selectedInvoice }: InvoiceMetric
 
   const totalsByClientChartConfig = {
     total: {
-      label: "Total Amount",
+      label: "Monto Total",
       color: "hsl(var(--chart-1))",
     },
   } satisfies ChartConfig;
@@ -34,16 +35,16 @@ export function InvoiceMetricsChart({ invoices, selectedInvoice }: InvoiceMetric
     if (!selectedInvoice) return [];
     return [
       { name: "Software", value: selectedInvoice.software_percentage, fill: COLORS_CATEGORIES[0] },
-      { name: "Project", value: selectedInvoice.proyecto_percentage, fill: COLORS_CATEGORIES[1] },
-      { name: "Staffing", value: selectedInvoice.staffing_percentage, fill: COLORS_CATEGORIES[2] },
+      { name: "Proyecto", value: selectedInvoice.proyecto_percentage, fill: COLORS_CATEGORIES[1] },
+      { name: "Personal", value: selectedInvoice.staffing_percentage, fill: COLORS_CATEGORIES[2] }, // Changed "Staffing" to "Personal"
     ].filter(item => item.value > 0);
   }, [selectedInvoice]);
 
  const expenseDistributionChartConfig = {
-    value: { label: "Percentage" },
+    value: { label: "Porcentaje" },
     Software: { label: "Software", color: "hsl(var(--chart-1))" },
-    Project: { label: "Project", color: "hsl(var(--chart-2))" },
-    Staffing: { label: "Staffing", color: "hsl(var(--chart-3))" },
+    Proyecto: { label: "Proyecto", color: "hsl(var(--chart-2))" }, // Changed "Project" to "Proyecto"
+    Personal: { label: "Personal", color: "hsl(var(--chart-3))" }, // Changed "Staffing" to "Personal"
   } satisfies ChartConfig
 
 
@@ -51,8 +52,8 @@ export function InvoiceMetricsChart({ invoices, selectedInvoice }: InvoiceMetric
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 mt-6">
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Total Invoiced by Client</CardTitle>
-          <CardDescription>Overview of total amounts billed to each client.</CardDescription>
+          <CardTitle>Total Facturado por Cliente</CardTitle>
+          <CardDescription>Resumen de los montos totales facturados a cada cliente.</CardDescription>
         </CardHeader>
         <CardContent>
           {totalsByClientChartData.length > 0 ? (
@@ -69,16 +70,16 @@ export function InvoiceMetricsChart({ invoices, selectedInvoice }: InvoiceMetric
               </BarChart>
             </ChartContainer>
           ) : (
-            <p className="text-center text-muted-foreground py-10">No data available for this chart.</p>
+            <p className="text-center text-muted-foreground py-10">No hay datos disponibles para este gráfico.</p>
           )}
         </CardContent>
       </Card>
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Expense Distribution</CardTitle>
+          <CardTitle>Distribución de Gastos</CardTitle>
           <CardDescription>
-            {selectedInvoice ? `For Invoice #${selectedInvoice.invoice_number}` : "Select an invoice to see distribution."}
+            {selectedInvoice ? `Para Factura N° ${selectedInvoice.invoice_number}` : "Seleccione una factura para ver la distribución."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -127,7 +128,7 @@ export function InvoiceMetricsChart({ invoices, selectedInvoice }: InvoiceMetric
               </ChartContainer>
           ) : (
             <p className="text-center text-muted-foreground py-10">
-              {selectedInvoice ? "No expense distribution data for this invoice." : "Select an invoice to view its expense distribution."}
+              {selectedInvoice ? "No hay datos de distribución de gastos para esta factura." : "Seleccione una factura para ver su distribución de gastos."}
             </p>
           )}
         </CardContent>

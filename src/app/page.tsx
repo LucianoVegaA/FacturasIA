@@ -56,7 +56,7 @@ export default function LoginPage() {
           <h2 className="text-2xl font-semibold text-foreground ml-2">HNL Planner</h2>
         </div>
         <div className="mt-auto text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Hyper Nova Labs. All rights reserved.
+          &copy; {new Date().getFullYear()} Hyper Nova Labs. Todos los derechos reservados.
         </div>
       </div>
 
@@ -74,7 +74,7 @@ export default function LoginPage() {
         <div className="relative z-10 bg-card p-8 md:p-10 rounded-xl shadow-2xl w-full max-w-lg space-y-6">
           <div className="text-center md:text-left">
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Sign In
+              Iniciar Sesión
             </h1>
             <p className="text-muted-foreground">
               Usa tu cuenta de Microsoft o continúa como invitado.
@@ -89,7 +89,7 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-card px-2 text-muted-foreground">
-                O continúa como
+                O continuar como
               </span>
             </div>
           </div>
@@ -105,7 +105,7 @@ export default function LoginPage() {
           </Button>
 
           <p className="text-center text-xs text-muted-foreground pt-4">
-            Secured by Microsoft Azure for Microsoft accounts.
+            Asegurado por Microsoft Azure para cuentas de Microsoft.
           </p>
         </div>
       </div>

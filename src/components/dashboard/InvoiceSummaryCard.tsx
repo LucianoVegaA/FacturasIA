@@ -37,7 +37,7 @@ export function InvoiceSummaryCard({ invoice, onClose }: InvoiceSummaryCardProps
           setSummary(result);
         } catch (e) {
           console.error("Error fetching invoice summary:", e);
-          setError("Failed to generate summary. Please try again.");
+          setError("Error al generar el resumen. Por favor, inténtelo de nuevo.");
         } finally {
           setIsLoading(false);
         }
@@ -56,11 +56,11 @@ export function InvoiceSummaryCard({ invoice, onClose }: InvoiceSummaryCardProps
         <div className="space-y-1">
           <CardTitle className="text-xl flex items-center">
             <FileText className="mr-2 h-5 w-5 text-primary" />
-            Invoice Summary
+            Resumen de Factura
           </CardTitle>
-          <CardDescription>AI-generated summary for Invoice #{invoice.invoice_number}</CardDescription>
+          <CardDescription>Resumen generado por IA para Factura N° {invoice.invoice_number}</CardDescription>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close summary">
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Cerrar resumen">
           <X className="h-5 w-5" />
         </Button>
       </CardHeader>
@@ -68,7 +68,7 @@ export function InvoiceSummaryCard({ invoice, onClose }: InvoiceSummaryCardProps
         {isLoading && (
           <div className="flex flex-col items-center justify-center h-40">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="mt-2 text-muted-foreground">Generating summary...</p>
+            <p className="mt-2 text-muted-foreground">Generando resumen...</p>
           </div>
         )}
         {error && !isLoading && (
