@@ -2,15 +2,15 @@
 "use client";
 
 import * as React from "react";
-import { Upload } from "lucide-react"; 
+import { Upload, ArrowUp, ArrowDown } from "lucide-react"; 
 import { InvoiceTable } from "@/components/dashboard/InvoiceTable";
 import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/InvoiceFilter";
 import type { Invoice, SimpleErrorFile } from "@/lib/types";
 import { InvoiceSummaryCard } from "@/components/dashboard/InvoiceSummaryCard";
 import { ErrorFileList } from "@/components/dashboard/ErrorFileList"; 
 import { Button } from "@/components/ui/button"; 
-import { updateInvoiceAccountInDB } from "@/app/actions/updateInvoiceAccount"; // Added
-import { useToast } from "@/hooks/use-toast"; // Added
+import { updateInvoiceAccountInDB } from "@/app/actions/updateInvoiceAccount";
+import { useToast } from "@/hooks/use-toast";
 
 interface InvoiceDashboardClientProps {
   initialInvoices: Invoice[];
@@ -18,15 +18,20 @@ interface InvoiceDashboardClientProps {
   availableMonths: string[];
 }
 
+type SortKey = keyof Invoice | null;
+type SortOrder = 'asc' | 'desc' | null;
+
 export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, availableMonths }: InvoiceDashboardClientProps) {
   const [managedInvoices, setManagedInvoices] = React.useState<Invoice[]>(initialInvoices);
   const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>(managedInvoices);
   const [filters, setFilters] = React.useState<InvoiceFilters>({ month: "all", searchTerm: "" });
   const [selectedInvoiceForSummary, setSelectedInvoiceForSummary] = React.useState<Invoice | null>(null);
-  const { toast } = useToast(); // Added
+  const { toast } = useToast();
+
+  const [sortKey, setSortKey] = React.useState<SortKey>(null);
+  const [sortOrder, setSortOrder] = React.useState<SortOrder>(null);
 
   React.useEffect(() => {
-    // Update managedInvoices if initialInvoices prop changes
     setManagedInvoices(initialInvoices);
   }, [initialInvoices]);
   
@@ -48,6 +53,50 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
 
   }, [filters, managedInvoices]);
 
+  const handleSort = (key: keyof Invoice) => {
+    if (sortKey === key) {
+      if (sortOrder === 'asc') {
+        setSortOrder('desc');
+      } else if (sortOrder === 'desc') {
+        setSortKey(null);
+        setSortOrder(null);
+      } else {
+        setSortOrder('asc'); // Should not happen if sortKey is already key
+      }
+    } else {
+      setSortKey(key);
+      setSortOrder('asc');
+    }
+  };
+
+  const sortedAndFilteredInvoices = React.useMemo(() => {
+    let sortableItems = [...filteredInvoices];
+    if (sortKey && sortOrder) {
+      sortableItems.sort((a, b) => {
+        const valA = a[sortKey];
+        const valB = b[sortKey];
+
+        let comparison = 0;
+
+        if (valA === null || valA === undefined) comparison = 1;
+        else if (valB === null || valB === undefined) comparison = -1;
+        else if (typeof valA === 'number' && typeof valB === 'number') {
+          comparison = valA - valB;
+        } else if ((sortKey === 'date_of_issue' || sortKey === 'due_date') && typeof valA === 'string' && typeof valB === 'string') {
+          const dateA = new Date(valA).getTime();
+          const dateB = new Date(valB).getTime();
+          comparison = dateA - dateB;
+        } else if (typeof valA === 'string' && typeof valB === 'string') {
+          comparison = valA.localeCompare(valB);
+        }
+        
+        return sortOrder === 'asc' ? comparison : comparison * -1;
+      });
+    }
+    return sortableItems;
+  }, [filteredInvoices, sortKey, sortOrder]);
+
+
   const handleRowClick = (invoice: Invoice) => {
     setSelectedInvoiceForSummary(invoice);
   };
@@ -58,14 +107,11 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
 
   const handleImportToSam = () => {
     console.log("Import Invoices to SAM button clicked");
-    // Future implementation:
     // const invoicesToImport = managedInvoices.filter(inv => inv.numero_cuenta_bancaria && inv.numero_cuenta_bancaria !== 'N/A');
     // console.log("Invoices ready for SAM import:", invoicesToImport);
-    // Call server action/API here
   };
 
   const handleAccountUpdate = async (invoiceId: string, newAccountNumber: string) => {
-    // Optimistically update client-side state
     setManagedInvoices(prevInvoices =>
       prevInvoices.map(inv =>
         inv._id === invoiceId 
@@ -88,13 +134,10 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
         description: result.error || "Could not update the account number in the database. Please try again.",
         variant: "destructive",
       });
-      // Optionally, revert client-side change or re-fetch data
-      // For simplicity, we're not reverting here, but in a real app you might want to.
-      // e.g., fetch initialInvoices again or find the invoice and set its account back.
        setManagedInvoices(prevInvoices =>
         prevInvoices.map(inv =>
           inv._id === invoiceId 
-            ? { ...inv, numero_cuenta_bancaria: initialInvoices.find(i => i._id === invoiceId)?.numero_cuenta_bancaria || 'N/A' } // Revert to original
+            ? { ...inv, numero_cuenta_bancaria: initialInvoices.find(i => i._id === invoiceId)?.numero_cuenta_bancaria || null } 
             : inv
         )
       );
@@ -118,9 +161,12 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
         availableMonths={availableMonths} 
       />
       <InvoiceTable 
-        invoices={filteredInvoices} 
+        invoices={sortedAndFilteredInvoices} 
         onRowClick={handleRowClick}
-        onAccountChange={handleAccountUpdate} 
+        onAccountChange={handleAccountUpdate}
+        sortKey={sortKey}
+        sortOrder={sortOrder}
+        onSort={handleSort}
       />
       {selectedInvoiceForSummary && (
         <InvoiceSummaryCard invoice={selectedInvoiceForSummary} onClose={handleCloseSummary} />

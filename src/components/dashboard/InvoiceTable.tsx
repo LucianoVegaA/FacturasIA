@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import type { Invoice } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Download, Edit3, AlertTriangle } from "lucide-react"; 
+import { ChevronLeft, ChevronRight, Download, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -36,6 +36,9 @@ interface InvoiceTableProps {
   invoices: Invoice[];
   onRowClick: (invoice: Invoice) => void;
   onAccountChange?: (invoiceId: string, newAccountNumber: string) => void;
+  sortKey: keyof Invoice | null;
+  sortOrder: 'asc' | 'desc' | null;
+  onSort: (key: keyof Invoice) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -45,7 +48,29 @@ const accountOptions = [
   "701019", "701020", "701501", "702001", "703020", "707003", "712004"
 ];
 
-export function InvoiceTable({ invoices, onRowClick, onAccountChange }: InvoiceTableProps) {
+const SortableHeader: React.FC<{
+  columnKey: keyof Invoice;
+  title: string;
+  currentSortKey: keyof Invoice | null;
+  currentSortOrder: 'asc' | 'desc' | null;
+  onSort: (key: keyof Invoice) => void;
+  className?: string;
+}> = ({ columnKey, title, currentSortKey, currentSortOrder, onSort, className }) => {
+  const isActive = currentSortKey === columnKey;
+  const Icon = isActive ? (currentSortOrder === 'asc' ? ArrowUp : ArrowDown) : ChevronsUpDown;
+  
+  return (
+    <TableHead onClick={() => onSort(columnKey)} className={cn("cursor-pointer hover:bg-muted/50", className)}>
+      <div className="flex items-center gap-2">
+        {title}
+        <Icon className={`h-4 w-4 ${isActive ? 'text-foreground' : 'text-muted-foreground/50'}`} />
+      </div>
+    </TableHead>
+  );
+};
+
+
+export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, sortOrder, onSort }: InvoiceTableProps) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
   const [pendingUpdate, setPendingUpdate] = React.useState<{ invoiceId: string; newAccountNumber: string } | null>(null);
@@ -87,12 +112,12 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange }: InvoiceT
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Client (Provedor)</TableHead>
-                  <TableHead>Issue Date</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Número de Cuenta</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <SortableHeader columnKey="invoice_number" title="Invoice #" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
+                  <SortableHeader columnKey="billed_to" title="Client (Provedor)" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
+                  <SortableHeader columnKey="date_of_issue" title="Issue Date" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
+                  <SortableHeader columnKey="due_date" title="Due Date" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
+                  <SortableHeader columnKey="numero_cuenta_bancaria" title="Número de Cuenta" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
+                  <SortableHeader columnKey="total" title="Total" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} className="text-right" />
                   <TableHead className="text-center">Download PDF</TableHead>
                 </TableRow>
               </TableHeader>
@@ -112,12 +137,10 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange }: InvoiceT
                         {(!invoice.numero_cuenta_bancaria || invoice.numero_cuenta_bancaria === 'N/A') && onAccountChange && invoice._id ? (
                           <Select
                             onValueChange={(value) => handleInitiateAccountChange(invoice._id, value)}
-                            // value prop should not be set here if we want the placeholder to show
-                            // and allow re-selection that triggers the dialog.
                           >
                             <SelectTrigger 
                               className="w-[150px] h-9 text-xs" 
-                              onClick={(e) => e.stopPropagation()} // Prevent row click
+                              onClick={(e) => e.stopPropagation()} 
                             >
                               <SelectValue placeholder="Assign Account" />
                             </SelectTrigger>
