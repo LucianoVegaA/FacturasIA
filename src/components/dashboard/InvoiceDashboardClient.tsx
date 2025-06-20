@@ -28,7 +28,6 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
     month: "all", 
     searchTerm: "",
     accountNumber: "all",
-    provider: "all",
   });
   const [selectedInvoiceForSummary, setSelectedInvoiceForSummary] = React.useState<Invoice | null>(null);
   const { toast } = useToast();
@@ -53,11 +52,8 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
 
       const matchesAccountNumber = filters.accountNumber === "all" ||
         (invoice.numero_cuenta_bancaria && invoice.numero_cuenta_bancaria === filters.accountNumber);
-
-      const matchesProvider = filters.provider === "all" ||
-        (invoice.company_name && invoice.company_name === filters.provider);
       
-      return matchesSearchTerm && matchesMonth && matchesAccountNumber && matchesProvider;
+      return matchesSearchTerm && matchesMonth && matchesAccountNumber;
     });
     
     setFilteredInvoices(newFilteredInvoices);
@@ -72,16 +68,6 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
       }
     });
     return Array.from(accountNumbers).sort();
-  }, [managedInvoices]);
-
-  const availableProviders = React.useMemo(() => {
-    const providers = new Set<string>();
-    managedInvoices.forEach(inv => {
-      if (inv.company_name) {
-        providers.add(inv.company_name);
-      }
-    });
-    return Array.from(providers).sort();
   }, [managedInvoices]);
 
   const handleSort = (key: keyof Invoice) => {
@@ -195,7 +181,6 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
         setFilters={setFilters} 
         availableMonths={availableMonths}
         availableAccountNumbers={availableAccountNumbers}
-        availableProviders={availableProviders}
       />
       <InvoiceTable 
         invoices={sortedAndFilteredInvoices} 

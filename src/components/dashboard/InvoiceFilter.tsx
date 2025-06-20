@@ -2,7 +2,7 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-import { Search, Filter, XCircle, CalendarDays, ListFilter, Building } from "lucide-react";
+import { Search, Filter, XCircle, CalendarDays, ListFilter } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,6 @@ export interface InvoiceFilters {
   month: string; // "all" or "YYYY-MM"
   searchTerm: string;
   accountNumber: string; // "all" or specific account number
-  provider: string; // "all" or specific provider/company name
 }
 
 interface InvoiceFilterProps {
@@ -27,15 +26,13 @@ interface InvoiceFilterProps {
   setFilters: Dispatch<SetStateAction<InvoiceFilters>>;
   availableMonths: string[];
   availableAccountNumbers: string[];
-  availableProviders: string[];
 }
 
 export function InvoiceFilter({ 
   filters, 
   setFilters, 
   availableMonths, 
-  availableAccountNumbers, 
-  availableProviders 
+  availableAccountNumbers
 }: InvoiceFilterProps) {
 
   const handleSearchTermChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,13 +46,9 @@ export function InvoiceFilter({
   const handleAccountNumberChange = (value: string) => {
     setFilters(prev => ({ ...prev, accountNumber: value }));
   };
-
-  const handleProviderChange = (value: string) => {
-    setFilters(prev => ({ ...prev, provider: value }));
-  };
   
   const clearFilters = () => {
-    setFilters({ month: "all", searchTerm: "", accountNumber: "all", provider: "all" });
+    setFilters({ month: "all", searchTerm: "", accountNumber: "all" });
   };
 
   const formatMonthForDisplay = (monthYear: string) => {
@@ -106,7 +99,7 @@ export function InvoiceFilter({
             </div>
           </div>
 
-          {/* Column 2: Account, Provider, and Clear Button */}
+          {/* Column 2: Account and Clear Button */}
           <div className="space-y-4">
             {/* Filter by Account Number */}
             <div className="relative">
@@ -120,24 +113,6 @@ export function InvoiceFilter({
                   {availableAccountNumbers.map(accNum => (
                     <SelectItem key={accNum} value={accNum}>
                       {accNum}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Filter by Provider */}
-            <div className="relative">
-              <Building className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Select value={filters.provider} onValueChange={handleProviderChange}>
-                <SelectTrigger className="w-full pl-8">
-                  <SelectValue placeholder="Filter by Provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Providers</SelectItem>
-                  {availableProviders.map(prov => (
-                    <SelectItem key={prov} value={prov}>
-                      {prov}
                     </SelectItem>
                   ))}
                 </SelectContent>
