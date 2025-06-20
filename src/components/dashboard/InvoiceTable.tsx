@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import type { Invoice } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Download } from "lucide-react"; 
+import { ChevronLeft, ChevronRight, Download, Edit3, AlertTriangle } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -21,6 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface InvoiceTableProps {
   invoices: Invoice[];
@@ -37,6 +47,8 @@ const accountOptions = [
 
 export function InvoiceTable({ invoices, onRowClick, onAccountChange }: InvoiceTableProps) {
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
+  const [pendingUpdate, setPendingUpdate] = React.useState<{ invoiceId: string; newAccountNumber: string } | null>(null);
 
   const totalPages = Math.ceil(invoices.length / ITEMS_PER_PAGE);
   const paginatedInvoices = invoices.slice(
@@ -44,121 +56,164 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange }: InvoiceT
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handleSelectAccount = (invoiceId: string | undefined, selectedAccount: string) => {
+  const handleInitiateAccountChange = (invoiceId: string | undefined, selectedAccount: string) => {
     if (invoiceId && onAccountChange) {
-      onAccountChange(invoiceId, selectedAccount);
+      setPendingUpdate({ invoiceId, newAccountNumber: selectedAccount });
+      setIsConfirmDialogOpen(true);
     }
+  };
+
+  const confirmAccountChange = () => {
+    if (pendingUpdate && onAccountChange) {
+      onAccountChange(pendingUpdate.invoiceId, pendingUpdate.newAccountNumber);
+    }
+    setIsConfirmDialogOpen(false);
+    setPendingUpdate(null);
+  };
+
+  const cancelAccountChange = () => {
+    setIsConfirmDialogOpen(false);
+    setPendingUpdate(null);
   };
   
   return (
-    <Card className="shadow-lg">
-      <CardHeader>
-        <CardTitle>Invoice Records</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Client (Provedor)</TableHead>
-                <TableHead>Issue Date</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Número de Cuenta</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-center">Download PDF</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedInvoices.length > 0 ? (
-                paginatedInvoices.map((invoice) => (
-                  <TableRow 
-                    key={invoice._id || invoice.invoice_number} 
-                    onClick={() => onRowClick(invoice)}
-                    className="cursor-pointer"
-                  >
-                    <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
-                    <TableCell>{invoice.billed_to}</TableCell>
-                    <TableCell>{new Date(invoice.date_of_issue).toLocaleDateString()}</TableCell>
-                    <TableCell>{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : 'N/A'}</TableCell>
-                    <TableCell>
-                      {(!invoice.numero_cuenta_bancaria || invoice.numero_cuenta_bancaria === 'N/A') && onAccountChange && invoice._id ? (
-                        <Select
-                          onValueChange={(value) => handleSelectAccount(invoice._id, value)}
-                          defaultValue={invoice.numero_cuenta_bancaria === 'N/A' ? undefined : invoice.numero_cuenta_bancaria || undefined}
-                        >
-                          <SelectTrigger 
-                            className="w-[150px] h-9 text-xs" 
-                            onClick={(e) => e.stopPropagation()} // Prevent row click
+    <>
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle>Invoice Records</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Invoice #</TableHead>
+                  <TableHead>Client (Provedor)</TableHead>
+                  <TableHead>Issue Date</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Número de Cuenta</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-center">Download PDF</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedInvoices.length > 0 ? (
+                  paginatedInvoices.map((invoice) => (
+                    <TableRow 
+                      key={invoice._id || invoice.invoice_number} 
+                      onClick={() => onRowClick(invoice)}
+                      className="cursor-pointer"
+                    >
+                      <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                      <TableCell>{invoice.billed_to}</TableCell>
+                      <TableCell>{new Date(invoice.date_of_issue).toLocaleDateString()}</TableCell>
+                      <TableCell>{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell>
+                        {(!invoice.numero_cuenta_bancaria || invoice.numero_cuenta_bancaria === 'N/A') && onAccountChange && invoice._id ? (
+                          <Select
+                            onValueChange={(value) => handleInitiateAccountChange(invoice._id, value)}
+                            // value prop should not be set here if we want the placeholder to show
+                            // and allow re-selection that triggers the dialog.
                           >
-                            <SelectValue placeholder="Assign Account" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {accountOptions.map(option => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        invoice.numero_cuenta_bancaria || 'N/A'
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">${invoice.total.toFixed(2)}</TableCell>
-                    <TableCell className="text-center">
-                      {invoice.pdf_url ? (
-                        <Button asChild variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
-                          <a href={invoice.pdf_url} target="_blank" rel="noopener noreferrer">
+                            <SelectTrigger 
+                              className="w-[150px] h-9 text-xs" 
+                              onClick={(e) => e.stopPropagation()} // Prevent row click
+                            >
+                              <SelectValue placeholder="Assign Account" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {accountOptions.map(option => (
+                                <SelectItem key={option} value={option}>
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          invoice.numero_cuenta_bancaria || 'N/A'
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">${invoice.total.toFixed(2)}</TableCell>
+                      <TableCell className="text-center">
+                        {invoice.pdf_url ? (
+                          <Button asChild variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
+                            <a href={invoice.pdf_url} target="_blank" rel="noopener noreferrer">
+                              <Download className="mr-2 h-4 w-4" />
+                              PDF
+                            </a>
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="sm" disabled onClick={(e) => e.stopPropagation()}>
                             <Download className="mr-2 h-4 w-4" />
                             PDF
-                          </a>
-                        </Button>
-                      ) : (
-                        <Button variant="outline" size="sm" disabled onClick={(e) => e.stopPropagation()}>
-                          <Download className="mr-2 h-4 w-4" />
-                          PDF
-                        </Button>
-                      )}
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      No invoices found.
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
-                    No invoices found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        {totalPages > 1 && (
-          <div className="flex items-center justify-end space-x-2 py-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+                )}
+              </TableBody>
+            </Table>
           </div>
-        )}
-      </CardContent>
-    </Card>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-end space-x-2 py-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {pendingUpdate && (
+        <AlertDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center">
+                <AlertTriangle className="mr-2 h-5 w-5 text-destructive" />
+                Confirm Account Change
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to change the account number for invoice 
+                {' '}<strong>{invoices.find(inv => inv._id === pendingUpdate.invoiceId)?.invoice_number || 'N/A'}</strong> 
+                {' '}to <strong>{pendingUpdate.newAccountNumber}</strong>?
+                <br />
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={cancelAccountChange}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmAccountChange} className="bg-destructive hover:bg-destructive/90">
+                Confirm Change
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </>
   );
 }
