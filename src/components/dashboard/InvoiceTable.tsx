@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import type { Invoice } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Download, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react"; 
+import { ChevronLeft, ChevronRight, Download, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -31,6 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils"; // Added import for cn
 
 interface InvoiceTableProps {
   invoices: Invoice[];
@@ -44,7 +45,7 @@ interface InvoiceTableProps {
 const ITEMS_PER_PAGE = 10;
 
 const accountOptions = [
-  "701001", "701003", "701006", "701008", "701009", "701011", 
+  "701001", "701003", "701006", "701008", "701009", "701011",
   "701019", "701020", "701501", "702001", "703020", "707003", "712004"
 ];
 
@@ -58,7 +59,7 @@ const SortableHeader: React.FC<{
 }> = ({ columnKey, title, currentSortKey, currentSortOrder, onSort, className }) => {
   const isActive = currentSortKey === columnKey;
   const Icon = isActive ? (currentSortOrder === 'asc' ? ArrowUp : ArrowDown) : ChevronsUpDown;
-  
+
   return (
     <TableHead onClick={() => onSort(columnKey)} className={cn("cursor-pointer hover:bg-muted/50", className)}>
       <div className="flex items-center gap-2">
@@ -100,7 +101,7 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
     setIsConfirmDialogOpen(false);
     setPendingUpdate(null);
   };
-  
+
   return (
     <>
       <Card className="shadow-lg">
@@ -124,8 +125,8 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
               <TableBody>
                 {paginatedInvoices.length > 0 ? (
                   paginatedInvoices.map((invoice) => (
-                    <TableRow 
-                      key={invoice._id || invoice.invoice_number} 
+                    <TableRow
+                      key={invoice._id || invoice.invoice_number}
                       onClick={() => onRowClick(invoice)}
                       className="cursor-pointer"
                     >
@@ -138,9 +139,9 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
                           <Select
                             onValueChange={(value) => handleInitiateAccountChange(invoice._id, value)}
                           >
-                            <SelectTrigger 
-                              className="w-[150px] h-9 text-xs" 
-                              onClick={(e) => e.stopPropagation()} 
+                            <SelectTrigger
+                              className="w-[150px] h-9 text-xs"
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <SelectValue placeholder="Assign Account" />
                             </SelectTrigger>
@@ -221,8 +222,8 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
                 Confirm Account Change
               </AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to change the account number for invoice 
-                {' '}<strong>{invoices.find(inv => inv._id === pendingUpdate.invoiceId)?.invoice_number || 'N/A'}</strong> 
+                Are you sure you want to change the account number for invoice
+                {' '}<strong>{invoices.find(inv => inv._id === pendingUpdate.invoiceId)?.invoice_number || 'N/A'}</strong>
                 {' '}to <strong>{pendingUpdate.newAccountNumber}</strong>?
                 <br />
                 This action cannot be undone.
