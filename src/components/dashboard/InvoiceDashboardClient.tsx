@@ -24,7 +24,12 @@ type SortOrder = 'asc' | 'desc' | null;
 export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, availableMonths }: InvoiceDashboardClientProps) {
   const [managedInvoices, setManagedInvoices] = React.useState<Invoice[]>(initialInvoices);
   const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>(managedInvoices);
-  const [filters, setFilters] = React.useState<InvoiceFilters>({ month: "all", searchTerm: "" });
+  const [filters, setFilters] = React.useState<InvoiceFilters>({ 
+    month: "all", 
+    searchTerm: "",
+    accountNumber: "all",
+    provider: "all",
+  });
   const [selectedInvoiceForSummary, setSelectedInvoiceForSummary] = React.useState<Invoice | null>(null);
   const { toast } = useToast();
 
@@ -45,13 +50,39 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
       
       const matchesMonth = filters.month === "all" || 
         (invoice.date_of_issue && invoice.date_of_issue.startsWith(filters.month));
+
+      const matchesAccountNumber = filters.accountNumber === "all" ||
+        (invoice.numero_cuenta_bancaria && invoice.numero_cuenta_bancaria === filters.accountNumber);
+
+      const matchesProvider = filters.provider === "all" ||
+        (invoice.company_name && invoice.company_name === filters.provider);
       
-      return matchesSearchTerm && matchesMonth;
+      return matchesSearchTerm && matchesMonth && matchesAccountNumber && matchesProvider;
     });
     
     setFilteredInvoices(newFilteredInvoices);
 
   }, [filters, managedInvoices]);
+
+  const availableAccountNumbers = React.useMemo(() => {
+    const accountNumbers = new Set<string>();
+    managedInvoices.forEach(inv => {
+      if (inv.numero_cuenta_bancaria && inv.numero_cuenta_bancaria !== 'N/A') {
+        accountNumbers.add(inv.numero_cuenta_bancaria);
+      }
+    });
+    return Array.from(accountNumbers).sort();
+  }, [managedInvoices]);
+
+  const availableProviders = React.useMemo(() => {
+    const providers = new Set<string>();
+    managedInvoices.forEach(inv => {
+      if (inv.company_name) {
+        providers.add(inv.company_name);
+      }
+    });
+    return Array.from(providers).sort();
+  }, [managedInvoices]);
 
   const handleSort = (key: keyof Invoice) => {
     if (sortKey === key) {
@@ -60,8 +91,8 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
       } else if (sortOrder === 'desc') {
         setSortKey(null);
         setSortOrder(null);
-      } else {
-        setSortOrder('asc'); // Should not happen if sortKey is already key
+      } else { // Should only happen if sortOrder was null
+        setSortOrder('asc');
       }
     } else {
       setSortKey(key);
@@ -83,9 +114,16 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
         else if (typeof valA === 'number' && typeof valB === 'number') {
           comparison = valA - valB;
         } else if ((sortKey === 'date_of_issue' || sortKey === 'due_date') && typeof valA === 'string' && typeof valB === 'string') {
-          const dateA = new Date(valA).getTime();
-          const dateB = new Date(valB).getTime();
-          comparison = dateA - dateB;
+          try {
+            const dateA = new Date(valA).getTime();
+            const dateB = new Date(valB).getTime();
+            if (isNaN(dateA) && isNaN(dateB)) comparison = 0;
+            else if (isNaN(dateA)) comparison = 1;
+            else if (isNaN(dateB)) comparison = -1;
+            else comparison = dateA - dateB;
+          } catch (e) {
+            comparison = 0; // Fallback for invalid date strings
+          }
         } else if (typeof valA === 'string' && typeof valB === 'string') {
           comparison = valA.localeCompare(valB);
         }
@@ -112,6 +150,8 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
   };
 
   const handleAccountUpdate = async (invoiceId: string, newAccountNumber: string) => {
+    // Optimistically update UI
+    const originalInvoices = [...managedInvoices];
     setManagedInvoices(prevInvoices =>
       prevInvoices.map(inv =>
         inv._id === invoiceId 
@@ -134,13 +174,8 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
         description: result.error || "Could not update the account number in the database. Please try again.",
         variant: "destructive",
       });
-       setManagedInvoices(prevInvoices =>
-        prevInvoices.map(inv =>
-          inv._id === invoiceId 
-            ? { ...inv, numero_cuenta_bancaria: initialInvoices.find(i => i._id === invoiceId)?.numero_cuenta_bancaria || null } 
-            : inv
-        )
-      );
+      // Revert optimistic update on failure
+       setManagedInvoices(originalInvoices);
     }
   };
 
@@ -158,7 +193,9 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
       <InvoiceFilter 
         filters={filters} 
         setFilters={setFilters} 
-        availableMonths={availableMonths} 
+        availableMonths={availableMonths}
+        availableAccountNumbers={availableAccountNumbers}
+        availableProviders={availableProviders}
       />
       <InvoiceTable 
         invoices={sortedAndFilteredInvoices} 

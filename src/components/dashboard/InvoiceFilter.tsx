@@ -2,7 +2,7 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-import { Search, Filter, XCircle, CalendarDays } from "lucide-react";
+import { Search, Filter, XCircle, CalendarDays, ListFilter, Building } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,16 +17,26 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export interface InvoiceFilters {
   month: string; // "all" or "YYYY-MM"
-  searchTerm: string; // Changed from provedor to searchTerm
+  searchTerm: string;
+  accountNumber: string; // "all" or specific account number
+  provider: string; // "all" or specific provider/company name
 }
 
 interface InvoiceFilterProps {
   filters: InvoiceFilters;
   setFilters: Dispatch<SetStateAction<InvoiceFilters>>;
   availableMonths: string[];
+  availableAccountNumbers: string[];
+  availableProviders: string[];
 }
 
-export function InvoiceFilter({ filters, setFilters, availableMonths }: InvoiceFilterProps) {
+export function InvoiceFilter({ 
+  filters, 
+  setFilters, 
+  availableMonths, 
+  availableAccountNumbers, 
+  availableProviders 
+}: InvoiceFilterProps) {
 
   const handleSearchTermChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFilters(prev => ({ ...prev, searchTerm: event.target.value }));
@@ -35,12 +45,21 @@ export function InvoiceFilter({ filters, setFilters, availableMonths }: InvoiceF
   const handleMonthChange = (value: string) => {
     setFilters(prev => ({ ...prev, month: value }));
   };
+
+  const handleAccountNumberChange = (value: string) => {
+    setFilters(prev => ({ ...prev, accountNumber: value }));
+  };
+
+  const handleProviderChange = (value: string) => {
+    setFilters(prev => ({ ...prev, provider: value }));
+  };
   
   const clearFilters = () => {
-    setFilters({ month: "all", searchTerm: "" });
+    setFilters({ month: "all", searchTerm: "", accountNumber: "all", provider: "all" });
   };
 
   const formatMonthForDisplay = (monthYear: string) => {
+    if (monthYear === "all") return "All Months";
     const [year, month] = monthYear.split('-');
     const date = new Date(parseInt(year), parseInt(month) - 1, 1);
     return date.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -54,18 +73,20 @@ export function InvoiceFilter({ filters, setFilters, availableMonths }: InvoiceF
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-          <div className="relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+          {/* Search by Client or Invoice # */}
+          <div className="relative lg:col-span-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by Client or Invoice #..." // Updated placeholder
+              placeholder="Search by Client or Invoice #..."
               value={filters.searchTerm}
               onChange={handleSearchTermChange}
               className="pl-8"
             />
           </div>
           
-          <div className="relative">
+          {/* Filter by Month */}
+          <div className="relative lg:col-span-1">
             <CalendarDays className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Select value={filters.month} onValueChange={handleMonthChange}>
               <SelectTrigger className="w-full pl-8">
@@ -81,8 +102,44 @@ export function InvoiceFilter({ filters, setFilters, availableMonths }: InvoiceF
               </SelectContent>
             </Select>
           </div>
+
+          {/* Filter by Account Number */}
+          <div className="relative lg:col-span-1">
+            <ListFilter className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Select value={filters.accountNumber} onValueChange={handleAccountNumberChange}>
+              <SelectTrigger className="w-full pl-8">
+                <SelectValue placeholder="Filter by Account #" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Accounts</SelectItem>
+                {availableAccountNumbers.map(accNum => (
+                  <SelectItem key={accNum} value={accNum}>
+                    {accNum}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Filter by Provider */}
+          <div className="relative lg:col-span-1">
+            <Building className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Select value={filters.provider} onValueChange={handleProviderChange}>
+              <SelectTrigger className="w-full pl-8">
+                <SelectValue placeholder="Filter by Provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Providers</SelectItem>
+                {availableProviders.map(prov => (
+                  <SelectItem key={prov} value={prov}>
+                    {prov}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
-          <Button onClick={clearFilters} variant="outline" className="w-full md:w-auto">
+          <Button onClick={clearFilters} variant="outline" className="w-full lg:col-span-1">
             <XCircle className="mr-2 h-4 w-4" /> Clear Filters
           </Button>
         </div>
