@@ -5,18 +5,18 @@ import * as React from "react";
 import { Upload } from "lucide-react"; 
 import { InvoiceTable } from "@/components/dashboard/InvoiceTable";
 import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/InvoiceFilter";
-import type { Invoice, ErrorInvoice } from "@/lib/types";
+import type { Invoice, SimpleErrorFile } from "@/lib/types";
 import { InvoiceSummaryCard } from "@/components/dashboard/InvoiceSummaryCard";
-import { ErrorInvoiceList } from "@/components/dashboard/ErrorInvoiceList"; // Added import
+import { ErrorFileList } from "@/components/dashboard/ErrorFileList"; // Renamed import
 import { Button } from "@/components/ui/button"; 
 
 interface InvoiceDashboardClientProps {
   initialInvoices: Invoice[];
-  initialErrorInvoices: ErrorInvoice[];
+  initialErrorFiles: SimpleErrorFile[]; // Changed from ErrorInvoice to SimpleErrorFile
   availableMonths: string[];
 }
 
-export function InvoiceDashboardClient({ initialInvoices, initialErrorInvoices, availableMonths }: InvoiceDashboardClientProps) {
+export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, availableMonths }: InvoiceDashboardClientProps) {
   const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>(initialInvoices);
   const [filters, setFilters] = React.useState<InvoiceFilters>({ month: "all", searchTerm: "" });
   const [selectedInvoiceForSummary, setSelectedInvoiceForSummary] = React.useState<Invoice | null>(null);
@@ -53,10 +53,9 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorInvoices, 
 
   return (
     <>
-      {/* Conditionally render ErrorInvoiceList if there are error invoices */}
-      {initialErrorInvoices.length > 0 && (
-        <ErrorInvoiceList errorInvoices={initialErrorInvoices} />
-      )}
+      {/* Conditionally render ErrorFileList if there are error files with names */}
+      <ErrorFileList errorFiles={initialErrorFiles} />
+      
       <div className="my-4 flex justify-end"> {/* Added margin-top/bottom for spacing */}
         <Button onClick={handleImportToSam} variant="outline">
           <Upload className="mr-2 h-4 w-4" />

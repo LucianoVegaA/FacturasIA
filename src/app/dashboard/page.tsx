@@ -1,10 +1,10 @@
 
 import * as React from "react";
 import { connectToDatabase } from "@/lib/mongodb";
-import type { Invoice, ErrorInvoice } from "@/lib/types"; 
+import type { Invoice, SimpleErrorFile } from "@/lib/types"; 
 import { InvoiceDashboardClient } from "@/components/dashboard/InvoiceDashboardClient";
 import type { Document } from 'mongodb'; 
-import { transformRawInvoice, transformRawErrorInvoice } from "@/lib/types";
+import { transformRawInvoice } from "@/lib/types";
 
 async function getInvoicesFromDB(): Promise<Invoice[]> {
   try {
@@ -66,14 +66,18 @@ async function getInvoicesFromDB(): Promise<Invoice[]> {
   }
 }
 
-async function getErrorInvoicesFromDB(): Promise<ErrorInvoice[]> {
+async function getErrorFilesFromDB(): Promise<SimpleErrorFile[]> {
   try {
     const { db } = await connectToDatabase();
-    const errorInvoicesCollection = db.collection<Document>("facturas_con_error");
-    const rawErrorInvoices = await errorInvoicesCollection.find({}).sort({ fecha_emision: -1 }).toArray();
-    return rawErrorInvoices.map(doc => transformRawErrorInvoice(doc));
+    const errorFilesCollection = db.collection<Document>("facturas_con_error");
+    const rawErrorFiles = await errorFilesCollection.find({}).toArray(); // Removed sort
+    
+    return rawErrorFiles.map(doc => ({
+      _id: doc._id.toString(),
+      file_name: doc.file_name || null, // Ensure file_name is string or null
+    }));
   } catch (error) {
-    console.error("Failed to fetch error invoices from DB:", error);
+    console.error("Failed to fetch error files from DB:", error);
     return [];
   }
 }
@@ -81,7 +85,7 @@ async function getErrorInvoicesFromDB(): Promise<ErrorInvoice[]> {
 
 export default async function DashboardPage() {
   const initialInvoices = await getInvoicesFromDB();
-  const initialErrorInvoices = await getErrorInvoicesFromDB();
+  const initialErrorFiles = await getErrorFilesFromDB();
 
   const monthsSet = new Set<string>();
   initialInvoices.forEach(inv => {
@@ -96,7 +100,7 @@ export default async function DashboardPage() {
       <h1 className="text-3xl font-bold text-foreground">Invoices</h1>
       <InvoiceDashboardClient 
         initialInvoices={initialInvoices} 
-        initialErrorInvoices={initialErrorInvoices}
+        initialErrorFiles={initialErrorFiles}
         availableMonths={availableMonths} 
       />
     </div>

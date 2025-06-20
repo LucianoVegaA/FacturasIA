@@ -57,9 +57,12 @@ export interface Invoice {
   pdf_url: string | null;
 }
 
-export interface ErrorInvoice extends Invoice {
-  error_description?: string;
+// New simple type for files from 'facturas_con_error' collection
+export interface SimpleErrorFile {
+  _id: string;
+  file_name: string | null;
 }
+
 
 // Helper function to transform raw invoice data (with flat items) to structured Invoice type
 export function transformRawInvoice(rawData: any): Invoice {
@@ -103,12 +106,4 @@ export function transformRawInvoice(rawData: any): Invoice {
   }
   
   return transformed;
-}
-
-export function transformRawErrorInvoice(rawData: any): ErrorInvoice {
-  const baseInvoice = transformRawInvoice(rawData);
-  return {
-    ...baseInvoice,
-    error_description: rawData.error_description || "No error description provided.",
-  };
 }

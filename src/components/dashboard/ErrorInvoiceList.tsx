@@ -1,58 +1,53 @@
 
 "use client";
 
-import type { ErrorInvoice } from "@/lib/types";
+import type { SimpleErrorFile } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, FileWarning } from "lucide-react"; // Added FileWarning for title
-import { Badge } from "@/components/ui/badge";
+import { FileWarning, FileText } from "lucide-react"; // Using FileWarning
 
-interface ErrorInvoiceListProps {
-  errorInvoices: ErrorInvoice[];
+interface ErrorFileListProps {
+  errorFiles: SimpleErrorFile[];
 }
 
-export function ErrorInvoiceList({ errorInvoices }: ErrorInvoiceListProps) {
-  if (!errorInvoices || errorInvoices.length === 0) {
-    return null;
+export function ErrorFileList({ errorFiles }: ErrorFileListProps) {
+  const filesWithNames = errorFiles.filter(file => file.file_name && file.file_name.trim() !== "");
+
+  if (!filesWithNames || filesWithNames.length === 0) {
+    return null; // Don't render anything if no error files with names
   }
 
   return (
     <Card className="mb-6 shadow-md border-destructive">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center text-lg text-destructive">
-          <FileWarning className="mr-2 h-5 w-5" /> Facturas con Error
+          <FileWarning className="mr-2 h-5 w-5" /> Archivos con Errores de Procesamiento
         </CardTitle>
         <CardDescription>
-          Las siguientes facturas tienen problemas y requieren atención.
+          Los siguientes archivos no pudieron ser procesados correctamente y requieren atención.
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
-        <ScrollArea className="h-48 max-h-[200px] rounded-md border p-3">
-          {errorInvoices.length > 0 ? (
-            <ul className="space-y-3">
-              {errorInvoices.map((invoice) => (
-                <li key={invoice._id || invoice.invoice_number} className="p-3 rounded-md border border-dashed border-destructive/50 bg-destructive/5 hover:bg-destructive/10 transition-colors">
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-semibold text-sm text-destructive-foreground">
-                      Factura #{invoice.invoice_number}
-                    </span>
-                    <Badge variant="destructive" className="text-xs">
-                      Error
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-1">
-                    Cliente: {invoice.billed_to}
-                  </p>
-                  <div className="flex items-start text-xs text-destructive mt-1">
-                    <AlertTriangle className="h-3.5 w-3.5 mr-1.5 flex-shrink-0 mt-0.5" />
-                    <p className="break-words">{invoice.error_description || "No specific error details provided."}</p>
+        <ScrollArea className="h-36 max-h-[150px] rounded-md border p-3">
+          {filesWithNames.length > 0 ? (
+            <ul className="space-y-2">
+              {filesWithNames.map((file) => (
+                <li 
+                  key={file._id} 
+                  className="p-2 rounded-md border border-dashed border-destructive/50 bg-destructive/5 hover:bg-destructive/10 transition-colors text-sm text-destructive-foreground"
+                >
+                  <div className="flex items-center">
+                    <FileText className="h-4 w-4 mr-2 flex-shrink-0 text-destructive" />
+                    <span>{file.file_name}</span>
                   </div>
                 </li>
               ))}
             </ul>
           ) : (
+            // This case should ideally not be reached due to the filter above,
+            // but kept as a fallback.
             <p className="text-sm text-muted-foreground text-center py-4">
-              No hay facturas con errores.
+              No hay archivos con errores.
             </p>
           )}
         </ScrollArea>
