@@ -7,12 +7,12 @@ import { InvoiceTable } from "@/components/dashboard/InvoiceTable";
 import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/InvoiceFilter";
 import type { Invoice, SimpleErrorFile } from "@/lib/types";
 import { InvoiceSummaryCard } from "@/components/dashboard/InvoiceSummaryCard";
-import { ErrorFileList } from "@/components/dashboard/ErrorFileList"; // Renamed import
+import { ErrorFileList } from "@/components/dashboard/ErrorFileList"; 
 import { Button } from "@/components/ui/button"; 
 
 interface InvoiceDashboardClientProps {
   initialInvoices: Invoice[];
-  initialErrorFiles: SimpleErrorFile[]; // Changed from ErrorInvoice to SimpleErrorFile
+  initialErrorFiles: SimpleErrorFile[]; 
   availableMonths: string[];
 }
 
@@ -53,10 +53,9 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
 
   return (
     <>
-      {/* Conditionally render ErrorFileList if there are error files with names */}
       <ErrorFileList errorFiles={initialErrorFiles} />
       
-      <div className="my-4 flex justify-end"> {/* Added margin-top/bottom for spacing */}
+      <div className="my-4 flex justify-end">
         <Button onClick={handleImportToSam} variant="outline">
           <Upload className="mr-2 h-4 w-4" />
           Import Invoices to SAM
