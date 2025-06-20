@@ -72,76 +72,82 @@ export function InvoiceFilter({
           <Filter className="mr-2 h-5 w-5 text-primary" /> Filter Invoices
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-          {/* Search by Client or Invoice # */}
-          <div className="relative lg:col-span-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by Client or Invoice #..."
-              value={filters.searchTerm}
-              onChange={handleSearchTermChange}
-              className="pl-8"
-            />
-          </div>
-          
-          {/* Filter by Month */}
-          <div className="relative lg:col-span-1">
-            <CalendarDays className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Select value={filters.month} onValueChange={handleMonthChange}>
-              <SelectTrigger className="w-full pl-8">
-                <SelectValue placeholder="Filter by month" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Months</SelectItem>
-                {availableMonths.map(month => (
-                  <SelectItem key={month} value={month}>
-                    {formatMonthForDisplay(month)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Filter by Account Number */}
-          <div className="relative lg:col-span-1">
-            <ListFilter className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Select value={filters.accountNumber} onValueChange={handleAccountNumberChange}>
-              <SelectTrigger className="w-full pl-8">
-                <SelectValue placeholder="Filter by Account #" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Accounts</SelectItem>
-                {availableAccountNumbers.map(accNum => (
-                  <SelectItem key={accNum} value={accNum}>
-                    {accNum}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          {/* Column 1: Search and Month */}
+          <div className="space-y-4">
+            {/* Search by Client or Invoice # */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by Client or Invoice #..."
+                value={filters.searchTerm}
+                onChange={handleSearchTermChange}
+                className="pl-8 w-full"
+              />
+            </div>
+            
+            {/* Filter by Month */}
+            <div className="relative">
+              <CalendarDays className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Select value={filters.month} onValueChange={handleMonthChange}>
+                <SelectTrigger className="w-full pl-8">
+                  <SelectValue placeholder="Filter by month" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Months</SelectItem>
+                  {availableMonths.map(month => (
+                    <SelectItem key={month} value={month}>
+                      {formatMonthForDisplay(month)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Filter by Provider */}
-          <div className="relative lg:col-span-1">
-            <Building className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Select value={filters.provider} onValueChange={handleProviderChange}>
-              <SelectTrigger className="w-full pl-8">
-                <SelectValue placeholder="Filter by Provider" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Providers</SelectItem>
-                {availableProviders.map(prov => (
-                  <SelectItem key={prov} value={prov}>
-                    {prov}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Column 2: Account, Provider, and Clear Button */}
+          <div className="space-y-4">
+            {/* Filter by Account Number */}
+            <div className="relative">
+              <ListFilter className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Select value={filters.accountNumber} onValueChange={handleAccountNumberChange}>
+                <SelectTrigger className="w-full pl-8">
+                  <SelectValue placeholder="Filter by Account #" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Accounts</SelectItem>
+                  {availableAccountNumbers.map(accNum => (
+                    <SelectItem key={accNum} value={accNum}>
+                      {accNum}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filter by Provider */}
+            <div className="relative">
+              <Building className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Select value={filters.provider} onValueChange={handleProviderChange}>
+                <SelectTrigger className="w-full pl-8">
+                  <SelectValue placeholder="Filter by Provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Providers</SelectItem>
+                  {availableProviders.map(prov => (
+                    <SelectItem key={prov} value={prov}>
+                      {prov}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Button onClick={clearFilters} variant="outline" className="w-full">
+              <XCircle className="mr-2 h-4 w-4" /> Clear Filters
+            </Button>
           </div>
-          
-          <Button onClick={clearFilters} variant="outline" className="w-full lg:col-span-1">
-            <XCircle className="mr-2 h-4 w-4" /> Clear Filters
-          </Button>
         </div>
       </CardContent>
     </Card>
