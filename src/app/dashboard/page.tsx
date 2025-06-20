@@ -69,12 +69,12 @@ async function getInvoicesFromDB(): Promise<Invoice[]> {
 async function getErrorFilesFromDB(): Promise<SimpleErrorFile[]> {
   try {
     const { db } = await connectToDatabase();
-    const errorFilesCollection = db.collection<Document>("facturas_con_error");
-    const rawErrorFiles = await errorFilesCollection.find({}).toArray(); // Removed sort
+    const errorFilesCollection = db.collection<Document>("Facturas con error"); // Updated collection name
+    const rawErrorFiles = await errorFilesCollection.find({}).toArray();
     
     return rawErrorFiles.map(doc => ({
       _id: doc._id.toString(),
-      file_name: doc.file_name || null, // Ensure file_name is string or null
+      file_name: doc.file_name || null,
     }));
   } catch (error) {
     console.error("Failed to fetch error files from DB:", error);
