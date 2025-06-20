@@ -45,6 +45,7 @@ export function InvoiceTable({ invoices, onRowClick }: InvoiceTableProps) {
                 <TableHead>Client (Provedor)</TableHead>
                 <TableHead>Issue Date</TableHead>
                 <TableHead>Due Date</TableHead>
+                <TableHead>Número de Cuenta</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead className="text-center">Download PDF</TableHead>
               </TableRow>
@@ -61,6 +62,7 @@ export function InvoiceTable({ invoices, onRowClick }: InvoiceTableProps) {
                     <TableCell>{invoice.billed_to}</TableCell>
                     <TableCell>{new Date(invoice.date_of_issue).toLocaleDateString()}</TableCell>
                     <TableCell>{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : 'N/A'}</TableCell>
+                    <TableCell>{invoice.numero_cuenta_bancaria || 'N/A'}</TableCell>
                     <TableCell className="text-right">${invoice.total.toFixed(2)}</TableCell>
                     <TableCell className="text-center">
                       {invoice.pdf_url ? (
@@ -81,7 +83,7 @@ export function InvoiceTable({ invoices, onRowClick }: InvoiceTableProps) {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
+                  <TableCell colSpan={7} className="h-24 text-center"> {/* Updated colSpan */}
                     No invoices found.
                   </TableCell>
                 </TableRow>
