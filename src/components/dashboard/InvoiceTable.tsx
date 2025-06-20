@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import type { Invoice } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Download, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown, Upload } from "lucide-react"; // Added Upload
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { cn } from "@/lib/utils"; // Added import for cn
+import { cn } from "@/lib/utils";
 
 interface InvoiceTableProps {
   invoices: Invoice[];
@@ -40,6 +40,7 @@ interface InvoiceTableProps {
   sortKey: keyof Invoice | null;
   sortOrder: 'asc' | 'desc' | null;
   onSort: (key: keyof Invoice) => void;
+  onImportToSam?: () => void; // Added prop for SAM import handler
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -71,7 +72,7 @@ const SortableHeader: React.FC<{
 };
 
 
-export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, sortOrder, onSort }: InvoiceTableProps) {
+export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, sortOrder, onSort, onImportToSam }: InvoiceTableProps) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
   const [pendingUpdate, setPendingUpdate] = React.useState<{ invoiceId: string; newAccountNumber: string } | null>(null);
@@ -104,9 +105,15 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
 
   return (
     <>
-      <Card className="shadow-lg">
-        <CardHeader>
+      <Card className="shadow-lg mt-6"> {/* Added mt-6 for spacing from filter */}
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Invoice Records</CardTitle>
+          {onImportToSam && (
+            <Button onClick={onImportToSam} variant="outline" size="sm">
+              <Upload className="mr-2 h-4 w-4" />
+              Import Invoices to SAM
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">

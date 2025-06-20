@@ -8,7 +8,6 @@ import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/Invoi
 import type { Invoice, SimpleErrorFile } from "@/lib/types";
 import { InvoiceSummaryCard } from "@/components/dashboard/InvoiceSummaryCard";
 import { ErrorFileList } from "@/components/dashboard/ErrorFileList"; 
-import { Button } from "@/components/ui/button"; 
 import { updateInvoiceAccountInDB } from "@/app/actions/updateInvoiceAccount";
 import { useToast } from "@/hooks/use-toast";
 
@@ -170,12 +169,7 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
     <>
       <ErrorFileList errorFiles={initialErrorFiles} />
       
-      <div className="my-4 flex justify-end">
-        <Button onClick={handleImportToSam} variant="outline">
-          <Upload className="mr-2 h-4 w-4" />
-          Import Invoices to SAM
-        </Button>
-      </div>
+      {/* Removed "Import Invoices to SAM" button from here */}
       <InvoiceFilter 
         filters={filters} 
         setFilters={setFilters} 
@@ -189,6 +183,7 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
         sortKey={sortKey}
         sortOrder={sortOrder}
         onSort={handleSort}
+        onImportToSam={handleImportToSam} // Pass the handler function
       />
       {selectedInvoiceForSummary && (
         <InvoiceSummaryCard invoice={selectedInvoiceForSummary} onClose={handleCloseSummary} />
