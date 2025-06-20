@@ -7,7 +7,7 @@ import { InvoiceTable } from "@/components/dashboard/InvoiceTable";
 import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/InvoiceFilter";
 import type { Invoice, ErrorInvoice } from "@/lib/types";
 import { InvoiceSummaryCard } from "@/components/dashboard/InvoiceSummaryCard";
-import { ErrorInvoiceList } from "@/components/dashboard/ErrorInvoiceList";
+import { ErrorInvoiceList } from "@/components/dashboard/ErrorInvoiceList"; // Added import
 import { Button } from "@/components/ui/button"; 
 
 interface InvoiceDashboardClientProps {
@@ -53,6 +53,7 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorInvoices, 
 
   return (
     <>
+      {/* Conditionally render ErrorInvoiceList if there are error invoices */}
       {initialErrorInvoices.length > 0 && (
         <ErrorInvoiceList errorInvoices={initialErrorInvoices} />
       )}
