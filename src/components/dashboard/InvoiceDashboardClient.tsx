@@ -17,14 +17,20 @@ interface InvoiceDashboardClientProps {
 }
 
 export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, availableMonths }: InvoiceDashboardClientProps) {
-  const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>(initialInvoices);
+  const [managedInvoices, setManagedInvoices] = React.useState<Invoice[]>(initialInvoices);
+  const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>(managedInvoices);
   const [filters, setFilters] = React.useState<InvoiceFilters>({ month: "all", searchTerm: "" });
   const [selectedInvoiceForSummary, setSelectedInvoiceForSummary] = React.useState<Invoice | null>(null);
 
   React.useEffect(() => {
+    // Update managedInvoices if initialInvoices prop changes
+    setManagedInvoices(initialInvoices);
+  }, [initialInvoices]);
+  
+  React.useEffect(() => {
     const lowerSearchTerm = filters.searchTerm.toLowerCase();
     
-    const newFilteredInvoices = initialInvoices.filter(invoice => {
+    const newFilteredInvoices = managedInvoices.filter(invoice => {
       const matchesSearchTerm = lowerSearchTerm === "" || 
         (invoice.billed_to && invoice.billed_to.toLowerCase().includes(lowerSearchTerm)) ||
         (invoice.invoice_number && invoice.invoice_number.toLowerCase().includes(lowerSearchTerm));
@@ -37,7 +43,7 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
     
     setFilteredInvoices(newFilteredInvoices);
 
-  }, [filters, initialInvoices]);
+  }, [filters, managedInvoices]);
 
   const handleRowClick = (invoice: Invoice) => {
     setSelectedInvoiceForSummary(invoice);
@@ -49,7 +55,25 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
 
   const handleImportToSam = () => {
     console.log("Import Invoices to SAM button clicked");
+    // Future implementation:
+    // const invoicesToImport = managedInvoices.filter(inv => inv.numero_cuenta_bancaria && inv.numero_cuenta_bancaria !== 'N/A');
+    // console.log("Invoices ready for SAM import:", invoicesToImport);
+    // Call server action/API here
   };
+
+  const handleAccountUpdate = (invoiceId: string, newAccountNumber: string) => {
+    setManagedInvoices(prevInvoices =>
+      prevInvoices.map(inv =>
+        inv._id === invoiceId 
+          ? { ...inv, numero_cuenta_bancaria: newAccountNumber } 
+          : inv
+      )
+    );
+    // Here you would also typically trigger a save to the backend:
+    // saveInvoiceAccountToDB(invoiceId, newAccountNumber); 
+    console.log(`Account for invoice ${invoiceId} updated to ${newAccountNumber} (client-side)`);
+  };
+
 
   return (
     <>
@@ -66,7 +90,11 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
         setFilters={setFilters} 
         availableMonths={availableMonths} 
       />
-      <InvoiceTable invoices={filteredInvoices} onRowClick={handleRowClick} />
+      <InvoiceTable 
+        invoices={filteredInvoices} 
+        onRowClick={handleRowClick}
+        onAccountChange={handleAccountUpdate} 
+      />
       {selectedInvoiceForSummary && (
         <InvoiceSummaryCard invoice={selectedInvoiceForSummary} onClose={handleCloseSummary} />
       )}
