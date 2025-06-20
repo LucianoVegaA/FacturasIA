@@ -69,7 +69,7 @@ async function getInvoicesFromDB(): Promise<Invoice[]> {
 async function getErrorFilesFromDB(): Promise<SimpleErrorFile[]> {
   try {
     const { db } = await connectToDatabase();
-    const errorFilesCollection = db.collection<Document>("Facturas con error"); // Updated collection name
+    const errorFilesCollection = db.collection<Document>("Facturas con error"); 
     const rawErrorFiles = await errorFilesCollection.find({}).toArray();
     
     return rawErrorFiles.map(doc => ({
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-bold text-foreground">Invoices</h1>
+      {/* <h1 className="text-3xl font-bold text-foreground">Invoices</h1> Removed this line */}
       <InvoiceDashboardClient 
         initialInvoices={initialInvoices} 
         initialErrorFiles={initialErrorFiles}

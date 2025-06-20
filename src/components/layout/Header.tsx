@@ -70,7 +70,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6 shadow-sm">
      
-      <div className="flex-1">
+      <div className="flex-1 flex items-center">
+        <h2 className="text-xl font-semibold text-foreground">Invoices</h2>
       </div>
 
       {/* Removed search input section */}
