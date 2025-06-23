@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Calendar as CalendarIcon, AlertCircle, Loader2, Save, ExternalLink, AlertTriangle, FileText } from "lucide-react";
+import { Calendar as CalendarIcon, AlertCircle, Loader2, Save, ExternalLink, AlertTriangle, FileText, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ErrorInvoice } from "@/lib/types";
 import { providerData, allProviders } from "@/lib/providerData";
@@ -22,8 +22,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 interface ErrorInvoiceDetailDialogProps {
   invoice: ErrorInvoice | null;
@@ -49,6 +50,7 @@ export function ErrorInvoiceDetailDialog({ invoice, isOpen, onOpenChange }: Erro
   const router = useRouter();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = React.useState(false);
+  const [isProviderComboboxOpen, setIsProviderComboboxOpen] = React.useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -172,27 +174,62 @@ export function ErrorInvoiceDetailDialog({ invoice, isOpen, onOpenChange }: Erro
                     control={form.control}
                     name="facturado_a"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex flex-col">
                         <FormLabel>Proveedor</FormLabel>
-                        <Select onValueChange={handleProviderChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Seleccione un proveedor" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {providerData.map(category => (
-                               <SelectGroup key={category.code}>
-                                 <FormLabel className="px-2 py-1.5 text-sm font-semibold">{category.name}</FormLabel>
-                                 {category.providers.map(provider => (
-                                    <SelectItem key={provider.name} value={provider.name}>
+                        <Popover open={isProviderComboboxOpen} onOpenChange={setIsProviderComboboxOpen}>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn(
+                                  "w-full justify-between",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value
+                                  ? allProviders.find(
+                                      (provider) => provider.name === field.value
+                                    )?.name
+                                  : "Seleccione un proveedor"}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                            <Command>
+                              <CommandInput placeholder="Buscar proveedor..." />
+                              <CommandEmpty>No se encontró el proveedor.</CommandEmpty>
+                              <CommandList>
+                                {providerData.map((category) => (
+                                  <CommandGroup key={category.code} heading={category.name}>
+                                    {category.providers.map((provider) => (
+                                      <CommandItem
+                                        key={provider.name}
+                                        value={provider.name}
+                                        onSelect={(value) => {
+                                          form.setValue("facturado_a", value)
+                                          handleProviderChange(value)
+                                          setIsProviderComboboxOpen(false)
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            provider.name === field.value
+                                              ? "opacity-100"
+                                              : "opacity-0"
+                                          )}
+                                        />
                                         {provider.name}
-                                    </SelectItem>
-                                 ))}
-                               </SelectGroup>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                ))}
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}
