@@ -3,17 +3,24 @@ import { PublicClientApplication, LogLevel, type Configuration, type PopupReques
 const MSAL_CLIENT_ID = process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID;
 const MSAL_TENANT_ID = process.env.NEXT_PUBLIC_AZURE_AD_TENANT_ID;
 
-if (!MSAL_CLIENT_ID || !MSAL_TENANT_ID) {
-  throw new Error(
-    "Azure AD environment variables (NEXT_PUBLIC_AZURE_AD_CLIENT_ID, NEXT_PUBLIC_AZURE_AD_TENANT_ID) are not set. " +
-    "Please create an Azure AD App Registration and add these to your .env file."
-  );
+// Use a placeholder if the env var is not set, to prevent crashing the app.
+const DUMMY_GUID = "00000000-0000-0000-0000-000000000000";
+const finalClientId = MSAL_CLIENT_ID && !MSAL_CLIENT_ID.startsWith('<') ? MSAL_CLIENT_ID : DUMMY_GUID;
+const finalTenantId = MSAL_TENANT_ID && !MSAL_TENANT_ID.startsWith('<') ? MSAL_TENANT_ID : DUMMY_GUID;
+
+
+if (finalClientId === DUMMY_GUID || finalTenantId === DUMMY_GUID) {
+    console.warn(
+      "Azure AD environment variables are not set in the .env file. " +
+      "The application will run, but Microsoft authentication will fail. " +
+      "Please set NEXT_PUBLIC_AZURE_AD_CLIENT_ID and NEXT_PUBLIC_AZURE_AD_TENANT_ID."
+    );
 }
 
 export const msalConfig: Configuration = {
   auth: {
-    clientId: MSAL_CLIENT_ID,
-    authority: `https://login.microsoftonline.com/${MSAL_TENANT_ID}`,
+    clientId: finalClientId,
+    authority: `https://login.microsoftonline.com/${finalTenantId}`,
     navigateToLoginRequestUrl: false, // Important for single-page applications
   },
   cache: {

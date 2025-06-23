@@ -4,7 +4,7 @@
 import * as React from "react";
 import type { SimpleErrorFile } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FileWarning, FileText, Download, Loader2 } from "lucide-react";
+import { FileWarning, FileText, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 
@@ -20,37 +20,41 @@ export function ErrorFileList({ errorFiles }: ErrorFileListProps) {
   }
 
   const handleDownloadClick = (file: SimpleErrorFile) => {
-    if (file.pdf_url) {
-      window.open(file.pdf_url, '_blank', 'noopener,noreferrer');
+    const baseUrl = process.env.NEXT_PUBLIC_SHAREPOINT_ERROR_PDF_BASE_URL;
+    if (baseUrl && file.file_name) {
+      const pdfUrl = `${baseUrl}/${file.file_name}`;
+      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      console.error("La URL base para los archivos con error o el nombre del archivo no están disponibles.");
     }
   };
 
   const FileItem = ({ file }: { file: SimpleErrorFile }) => {
-    const hasPdf = !!file.pdf_url;
+    const canDownload = !!(process.env.NEXT_PUBLIC_SHAREPOINT_ERROR_PDF_BASE_URL && file.file_name);
 
     return (
       <div
         key={file._id}
         className={cn(
           "flex-shrink-0 w-64 h-auto rounded-md border bg-card flex flex-row items-center text-left p-2.5 gap-3 overflow-hidden",
-          !hasPdf && "opacity-50"
+          !canDownload && "opacity-50"
         )}
       >
         <FileText className="h-5 w-5 text-destructive flex-shrink-0" />
         <p className="text-sm font-medium text-foreground truncate flex-grow">
           {file.file_name}
         </p>
-        {hasPdf && (
-            <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDownloadClick(file)}
-                className="ml-auto p-1 text-primary hover:bg-accent rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label={`Descargar PDF de ${file.file_name}`}
-            >
-                <Download className="h-5 w-5" />
-            </Button>
-        )}
+        
+        <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleDownloadClick(file)}
+            disabled={!canDownload}
+            className="ml-auto p-1 text-primary hover:bg-accent rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={`Descargar PDF de ${file.file_name}`}
+        >
+            <Download className="h-5 w-5" />
+        </Button>
       </div>
     );
   };
