@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -9,6 +10,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Loader2, AlertTriangle } from "lucide-react";
+import { fetchPdfAsBase64 } from "@/app/actions/fetchPdfProxy";
 
 interface PdfViewerDialogProps {
   pdfUrl: string;
@@ -22,7 +24,6 @@ export function PdfViewerDialog({ pdfUrl, fileName, isOpen, onOpenChange }: PdfV
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   
-  // Ref to hold the current object URL to allow cleanup to access it without being in the dependency array
   const objectUrlRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
@@ -37,25 +38,36 @@ export function PdfViewerDialog({ pdfUrl, fileName, isOpen, onOpenChange }: PdfV
       setIsLoading(true);
       setError(null);
 
-      const fetchPdfAsBlob = async () => {
+      const fetchPdfViaProxy = async () => {
         try {
-          const response = await fetch(pdfUrl);
-          if (!response.ok) {
-            throw new Error(`Error al cargar el PDF: ${response.statusText} (Código: ${response.status})`);
+          const result = await fetchPdfAsBase64(pdfUrl);
+
+          if (!result.success || !result.data) {
+            throw new Error(result.error || "Fallo al obtener los datos del PDF desde el servidor.");
           }
-          const blob = await response.blob();
+          
+          // The data is base64, so we need to create a blob from it.
+          const byteCharacters = atob(result.data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: result.contentType || 'application/pdf' });
+          
           const url = URL.createObjectURL(blob);
           objectUrlRef.current = url;
           setObjectUrl(url);
+
         } catch (err: any) {
-          console.error("PDF Fetch Error:", err);
-          setError(err.message || "No se pudo cargar el PDF. Verifique la URL y los permisos de CORS.");
+          console.error("PDF Proxy Fetch Error:", err);
+          setError(err.message || "No se pudo cargar el PDF. Verifique la URL y la configuración del proxy.");
         } finally {
           setIsLoading(false);
         }
       };
 
-      fetchPdfAsBlob();
+      fetchPdfViaProxy();
     }
     
     // The main cleanup function that runs when the component unmounts.
