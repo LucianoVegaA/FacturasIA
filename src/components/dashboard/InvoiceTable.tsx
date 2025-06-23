@@ -41,8 +41,7 @@ interface InvoiceTableProps {
   sortKey: keyof Invoice | null;
   sortOrder: 'asc' | 'desc' | null;
   onSort: (key: keyof Invoice) => void;
-  onExportToSam?: () => void; 
-  onViewPdf: (url: string, fileName: string) => void;
+  onExportToSam?: () => void;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -117,7 +116,7 @@ const EditableInvoiceNumberCell: React.FC<{
 EditableInvoiceNumberCell.displayName = 'EditableInvoiceNumberCell';
 
 
-export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange, sortKey, sortOrder, onSort, onExportToSam, onViewPdf }: InvoiceTableProps) {
+export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange, sortKey, sortOrder, onSort, onExportToSam }: InvoiceTableProps) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
   const [pendingUpdate, setPendingUpdate] = React.useState<{ invoiceId: string; newAccountNumber: string } | null>(null);
@@ -150,14 +149,12 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
   
   const handleViewPdfClick = (invoice: Invoice) => {
     const baseUrl = process.env.NEXT_PUBLIC_SHAREPOINT_PDF_BASE_URL;
-    if (!baseUrl) {
-      console.error("La URL base de SharePoint para los PDF no está configurada en las variables de entorno (NEXT_PUBLIC_SHAREPOINT_PDF_BASE_URL).");
-      // The button will be disabled if the env var is not set, so this is a fallback.
+    if (!baseUrl || !invoice.invoice_number || invoice.invoice_number === 'N/A') {
+      console.error("La URL base de SharePoint o el número de factura no están disponibles.");
       return;
     }
     const pdfUrl = `${baseUrl}/${invoice.invoice_number}.pdf`;
-    const fileName = `${invoice.invoice_number}.pdf`;
-    onViewPdf(pdfUrl, fileName);
+    window.open(pdfUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (

@@ -10,7 +10,6 @@ import { ErrorFileList } from "@/components/dashboard/ErrorFileList";
 import { updateInvoiceAccountInDB } from "@/app/actions/updateInvoiceAccount";
 import { updateInvoiceNumberInDB } from "@/app/actions/updateInvoiceNumber";
 import { useToast } from "@/hooks/use-toast";
-import { PdfViewerDialog } from "./PdfViewerDialog";
 
 interface InvoiceDashboardClientProps {
   initialInvoices: Invoice[];
@@ -33,7 +32,6 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
 
   const [sortKey, setSortKey] = React.useState<SortKey>(null);
   const [sortOrder, setSortOrder] = React.useState<SortOrder>(null);
-  const [viewingPdf, setViewingPdf] = React.useState<{ url: string; fileName: string } | null>(null);
 
   React.useEffect(() => {
     setManagedInvoices(initialInvoices);
@@ -187,10 +185,6 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
     }
   };
 
-  const handleViewPdf = (url: string, fileName: string) => {
-    setViewingPdf({ url, fileName });
-  };
-
   return (
     <>
       <ErrorFileList errorFiles={initialErrorFiles} />
@@ -209,16 +203,7 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
         sortOrder={sortOrder}
         onSort={handleSort}
         onExportToSam={handleExportToSam}
-        onViewPdf={handleViewPdf} 
       />
-      {viewingPdf && (
-        <PdfViewerDialog
-          isOpen={!!viewingPdf}
-          onOpenChange={(isOpen) => { if (!isOpen) setViewingPdf(null); }}
-          pdfUrl={viewingPdf.url}
-          fileName={viewingPdf.fileName}
-        />
-      )}
     </>
   );
 }
