@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Calendar as CalendarIcon, AlertCircle, Loader2, Save, ExternalLink, AlertTriangle } from "lucide-react";
+import { Calendar as CalendarIcon, AlertCircle, Loader2, Save, ExternalLink, AlertTriangle, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ErrorInvoice } from "@/lib/types";
 import { providerData, allProviders } from "@/lib/providerData";
