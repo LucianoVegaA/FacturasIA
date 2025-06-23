@@ -175,11 +175,14 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
               <TableHeader>
                 <TableRow>
                   <SortableHeader columnKey="invoice_number" title="Factura N°" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
-                  <SortableHeader columnKey="billed_to" title="Cliente (Proveedor)" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
+                  <SortableHeader columnKey="billed_to" title="Cliente" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
                   <SortableHeader columnKey="date_of_issue" title="Fecha Emisión" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
                   <SortableHeader columnKey="due_date" title="Fecha Vencimiento" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
-                  <SortableHeader columnKey="numero_cuenta_bancaria" title="Número de Cuenta" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
+                  <SortableHeader columnKey="subtotal" title="Subtotal" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} className="text-right" />
+                  <SortableHeader columnKey="tax" title="Impuesto" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} className="text-right" />
                   <SortableHeader columnKey="total" title="Total" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} className="text-right" />
+                  <SortableHeader columnKey="numero_cuenta_bancaria" title="N° Cuenta" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
+                  <SortableHeader columnKey="invoice_description" title="Descripción" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
                   <TableHead className="text-center">Ver PDF</TableHead>
                 </TableRow>
               </TableHeader>
@@ -199,6 +202,9 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
                       <TableCell>{invoice.billed_to}</TableCell>
                       <TableCell>{new Date(invoice.date_of_issue).toLocaleDateString()}</TableCell>
                       <TableCell>{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell className="text-right">${invoice.subtotal.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">${invoice.tax.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">${invoice.total.toFixed(2)}</TableCell>
                       <TableCell>
                         {(!invoice.numero_cuenta_bancaria || invoice.numero_cuenta_bancaria === 'N/A') && onAccountChange && invoice._id ? (
                           <Select
@@ -222,7 +228,11 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
                           invoice.numero_cuenta_bancaria || 'N/A'
                         )}
                       </TableCell>
-                      <TableCell className="text-right">${invoice.total.toFixed(2)}</TableCell>
+                       <TableCell>
+                        <div className="w-40 truncate" title={invoice.invoice_description}>
+                            {invoice.invoice_description}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-center">
                         <Button
                             variant="outline"
@@ -241,7 +251,7 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
+                    <TableCell colSpan={10} className="h-24 text-center">
                       No se encontraron facturas.
                     </TableCell>
                   </TableRow>

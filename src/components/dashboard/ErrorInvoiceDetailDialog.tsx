@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Calendar as CalendarIcon, AlertCircle, Loader2, Save, ExternalLink, AlertTriangle, FileText, Check, ChevronsUpDown } from "lucide-react";
+import { Calendar as CalendarIcon, AlertCircle, Loader2, Save, ExternalLink, AlertTriangle, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ErrorInvoice } from "@/lib/types";
 import { providerData, allProviders } from "@/lib/providerData";
@@ -25,6 +25,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { FileText } from "lucide-react";
 
 interface ErrorInvoiceDetailDialogProps {
   invoice: ErrorInvoice | null;
@@ -104,13 +105,15 @@ export function ErrorInvoiceDetailDialog({ invoice, isOpen, onOpenChange }: Erro
     setIsSaving(true);
 
     const total = calculatedTotal;
+    const taxAmount = values.subtotal * (values.impuesto / 100);
 
     const correctedData = {
       ...values,
       fecha_emision: format(values.fecha_emision, 'yyyy-MM-dd'),
       total,
-      subtotal: values.subtotal, // ensure subtotal is passed
-      impuesto: values.impuesto,
+      subtotal: values.subtotal,
+      impuesto: values.impuesto, // Keep rate for reference
+      tax: taxAmount, // Add calculated tax amount
     };
     
     const result = await correctAndMoveInvoice(invoice._id, invoice.raw_data, correctedData);

@@ -96,15 +96,23 @@ export function transformRawInvoice(rawData: any): Invoice {
   }
   
   // Consolidate all mapping logic here.
-  let taxValue = 0;
-  if (typeof rawData.impuesto === 'number') {
-    taxValue = rawData.impuesto;
-  } else if (typeof rawData.impuesto === 'string') {
-    const parsedTax = parseFloat(rawData.impuesto);
-    if (!isNaN(parsedTax)) {
-      taxValue = parsedTax;
+  const subtotal = typeof rawData.subtotal === 'number' ? rawData.subtotal : 0;
+  
+  let taxAmount = 0;
+  // If `tax` field (amount) exists, use it. This is for data that already has the amount.
+  if (typeof rawData.tax === 'number') {
+    taxAmount = rawData.tax;
+  }
+  // Else if `impuesto` (rate) exists, calculate tax amount from it. For newly corrected invoices.
+  else if (typeof rawData.impuesto === 'number') {
+    taxAmount = subtotal * (rawData.impuesto / 100);
+  } else if (typeof rawData.impuesto === 'string') { // Legacy handling for string rates
+    const parsedRate = parseFloat(rawData.impuesto);
+    if (!isNaN(parsedRate)) {
+      taxAmount = subtotal * (parsedRate / 100);
     }
   }
+
 
   const transformed: Invoice = {
     _id: rawData._id?.toString(),
@@ -116,9 +124,9 @@ export function transformRawInvoice(rawData: any): Invoice {
     due_date: rawData.fecha_vencimiento || null,
     invoice_description: rawData.descripcion || "No description",
     items,
-    subtotal: typeof rawData.subtotal === 'number' ? rawData.subtotal : 0,
+    subtotal: subtotal,
     discount: typeof rawData.descuento === 'number' ? rawData.descuento : 0,
-    tax: taxValue,
+    tax: taxAmount,
     total: typeof rawData.total === 'number' ? rawData.total : 0,
     terms: rawData.terminos || null,
     conditions_instructions: rawData.condiciones_instrucciones || null,
