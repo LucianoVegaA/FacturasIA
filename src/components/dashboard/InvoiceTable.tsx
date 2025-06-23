@@ -115,6 +115,27 @@ const EditableInvoiceNumberCell: React.FC<{
 };
 EditableInvoiceNumberCell.displayName = 'EditableInvoiceNumberCell';
 
+const TaxDisplay = ({ tax, rate }: { tax: number; rate: number }) => {
+  const roundedRate = Math.round(rate);
+  let label = '';
+
+  if (roundedRate === 0) {
+    label = 'C1 (0%)';
+  } else if (roundedRate === 7) {
+    label = 'C2 (7%)';
+  } else if (roundedRate === 10) {
+    label = 'C3 (10%)';
+  }
+
+  return (
+    <div className="text-right">
+      <span>{`$${tax.toFixed(2)}`}</span>
+      {label && <span className="block text-xs text-muted-foreground">{label}</span>}
+    </div>
+  );
+};
+TaxDisplay.displayName = 'TaxDisplay';
+
 
 export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange, sortKey, sortOrder, onSort, onExportToSam }: InvoiceTableProps) {
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -203,7 +224,9 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
                       <TableCell>{new Date(invoice.date_of_issue).toLocaleDateString()}</TableCell>
                       <TableCell>{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : 'N/A'}</TableCell>
                       <TableCell className="text-right">${invoice.subtotal.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">${invoice.tax.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <TaxDisplay tax={invoice.tax} rate={invoice.tax_rate} />
+                      </TableCell>
                       <TableCell className="text-right">${invoice.total.toFixed(2)}</TableCell>
                       <TableCell>
                         {(!invoice.numero_cuenta_bancaria || invoice.numero_cuenta_bancaria === 'N/A') && onAccountChange && invoice._id ? (

@@ -60,7 +60,7 @@ export function ErrorInvoiceDetailDialog({ invoice, isOpen, onOpenChange }: Erro
       numero_factura: "",
       fecha_emision: new Date(),
       subtotal: 0,
-      impuesto: 7, // Default to 7%
+      impuesto: 0, // Default to 0%
       descripcion: "",
       porcentaje_staffing: 0,
       porcentaje_proyecto: 0,
@@ -80,7 +80,7 @@ export function ErrorInvoiceDetailDialog({ invoice, isOpen, onOpenChange }: Erro
         numero_factura: invoice.raw_data?.numero_factura || "",
         fecha_emision: emissionDate,
         subtotal: invoice.raw_data?.total || 0, // Assuming old 'total' is the new 'subtotal'
-        impuesto: 7,
+        impuesto: invoice.raw_data?.impuesto ?? 0,
         descripcion: invoice.raw_data?.descripcion || "",
         porcentaje_staffing: 0,
         porcentaje_proyecto: 0,
@@ -304,9 +304,9 @@ export function ErrorInvoiceDetailDialog({ invoice, isOpen, onOpenChange }: Erro
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="7">C1 = 7%</SelectItem>
-                              <SelectItem value="10">C2 = 10%</SelectItem>
-                              <SelectItem value="15">C3 = 15%</SelectItem>
+                              <SelectItem value="0">C1 = 0%</SelectItem>
+                              <SelectItem value="7">C2 = 7%</SelectItem>
+                              <SelectItem value="10">C3 = 10%</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
