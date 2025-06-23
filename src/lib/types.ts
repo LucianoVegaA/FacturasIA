@@ -68,42 +68,80 @@ export interface SimpleErrorFile {
 export function transformRawInvoice(rawData: any): Invoice {
   const items: InvoiceItemDetail[] = [];
   for (let i = 0; ; i++) {
-    if (rawData[`item_${i}_description`] === undefined && rawData[`item_${i}_amount`] === undefined && rawData[`item_${i}_rate`] === undefined && rawData[`item_${i}_quantity`] === undefined) {
+    const descriptionKey = `item_${i}_description`;
+    const amountKey = `item_${i}_amount`;
+    const rateKey = `item_${i}_rate`;
+    const quantityKey = `item_${i}_quantity`;
+
+    // Break if none of the keys for the current item index exist
+    if (
+      !rawData.hasOwnProperty(descriptionKey) &&
+      !rawData.hasOwnProperty(amountKey) &&
+      !rawData.hasOwnProperty(rateKey) &&
+      !rawData.hasOwnProperty(quantityKey)
+    ) {
       break;
     }
-    if (rawData[`item_${i}_description`] || rawData[`item_${i}_amount`] || rawData[`item_${i}_rate`] || rawData[`item_${i}_quantity`]) {
-      items.push({
-        description: rawData[`item_${i}_description`] || '',
-        quantity: typeof rawData[`item_${i}_quantity`] === 'number' ? rawData[`item_${i}_quantity`] : 0,
-        rate: typeof rawData[`item_${i}_rate`] === 'number' ? rawData[`item_${i}_rate`] : 0,
-        amount: typeof rawData[`item_${i}_amount`] === 'number' ? rawData[`item_${i}_amount`] : 0,
-      });
+
+    items.push({
+      description: rawData[descriptionKey] || '',
+      quantity: typeof rawData[quantityKey] === 'number' ? rawData[quantityKey] : 0,
+      rate: typeof rawData[rateKey] === 'number' ? rawData[rateKey] : 0,
+      amount: typeof rawData[amountKey] === 'number' ? rawData[amountKey] : 0,
+    });
+  }
+  
+  // Consolidate all mapping logic here.
+  let taxValue = 0;
+  if (typeof rawData.impuesto === 'number') {
+    taxValue = rawData.impuesto;
+  } else if (typeof rawData.impuesto === 'string') {
+    const parsedTax = parseFloat(rawData.impuesto);
+    if (!isNaN(parsedTax)) {
+      taxValue = parsedTax;
     }
   }
 
   const transformed: Invoice = {
-    ...rawData, 
-    items,      
-    pdf_url: rawData.pdf_url || null,
+    _id: rawData._id?.toString(),
+    onedrive_file_id: rawData.identificador || `fallback_id_${rawData._id?.toString()}`,
+    billed_to: rawData.facturado_a || "N/A",
+    invoice_number: rawData.numero_factura || "N/A",
+    date_of_issue: rawData.fecha_emision || new Date().toISOString().split('T')[0],
+    due_date: rawData.fecha_vencimiento || null,
+    invoice_description: rawData.descripcion || "No description",
+    items,
     subtotal: typeof rawData.subtotal === 'number' ? rawData.subtotal : 0,
-    discount: typeof rawData.discount === 'number' ? rawData.discount : 0,
-    tax: typeof rawData.tax === 'number' ? rawData.tax : 0,
+    discount: typeof rawData.descuento === 'number' ? rawData.descuento : 0,
+    tax: taxValue,
     total: typeof rawData.total === 'number' ? rawData.total : 0,
-    staffing_percentage: typeof rawData.staffing_percentage === 'number' ? rawData.staffing_percentage : 0,
-    proyecto_percentage: typeof rawData.proyecto_percentage === 'number' ? rawData.proyecto_percentage : 0,
-    software_percentage: typeof rawData.software_percentage === 'number' ? rawData.software_percentage : 0,
-    invoice_number: rawData.invoice_number || "N/A",
-    billed_to: rawData.billed_to || "N/A",
-    date_of_issue: rawData.date_of_issue || new Date().toISOString().split('T')[0],
-    invoice_description: rawData.invoice_description || "No description",
-    company_name: rawData.company_name || "Default Company Inc.",
-    company_address: rawData.company_address || "123 Default St",
-    recipient_name: rawData.recipient_name || "Valued Customer",
+    terms: rawData.terminos || null,
+    conditions_instructions: rawData.condiciones_instrucciones || null,
+    company_name: rawData.nombre_empresa || "Default Company Inc.",
+    company_mobile: rawData.movil_empresa || null,
+    company_email: rawData.email_empresa || null,
+    company_website: rawData.web_empresa || null,
+    company_address: rawData.direccion_empresa || "123 Default St",
+    company_ruc: rawData.ruc_empresa || null,
+    recipient_name: rawData.nombre_destinatario || "Valued Customer",
+    recipient_id: rawData.id_destinatario || null,
+    bank_account_name: rawData.nombre_cuenta_bancaria_banco || null,
+    bank_account_number: rawData.numero_cuenta_bancaria_entidad || null,
+    bank_name: rawData.nombre_banco || null,
+    numero_cuenta_bancaria: rawData.numero_cuenta_bancaria || null,
+    staffing_percentage: typeof rawData.porcentaje_staffing === 'number' ? rawData.porcentaje_staffing : 0,
+    proyecto_percentage: typeof rawData.porcentaje_proyecto === 'number' ? rawData.porcentaje_proyecto : 0,
+    software_percentage: typeof rawData.porcentaje_software === 'number' ? rawData.porcentaje_software : 0,
+    pdf_url: rawData.file_url || null, // Correctly maps file_url to pdf_url
   };
 
-  if (rawData._id && typeof rawData._id !== 'string') {
-    transformed._id = rawData._id.toString();
-  }
+  // Add original item_X fields back for things like the AI summary if needed
+  items.forEach((item, i) => {
+    (transformed as any)[`item_${i}_description`] = item.description;
+    (transformed as any)[`item_${i}_quantity`] = item.quantity;
+    (transformed as any)[`item_${i}_rate`] = item.rate;
+    (transformed as any)[`item_${i}_amount`] = item.amount;
+  });
   
   return transformed;
 }
