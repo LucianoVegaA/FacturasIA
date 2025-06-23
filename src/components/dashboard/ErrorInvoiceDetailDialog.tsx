@@ -6,23 +6,24 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Calendar as CalendarIcon, AlertCircle, Loader2, Save, ExternalLink, AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { ErrorInvoice } from "@/lib/types";
+import { providerData, allProviders } from "@/lib/providerData";
+import { correctAndMoveInvoice } from "@/app/actions/updateErrorInvoice";
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertCircle, Loader2, Save, FileText, ExternalLink, AlertTriangle } from "lucide-react";
-import type { ErrorInvoice } from "@/lib/types";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { correctAndMoveInvoice } from "@/app/actions/updateErrorInvoice";
 
 interface ErrorInvoiceDetailDialogProps {
   invoice: ErrorInvoice | null;
@@ -31,18 +32,20 @@ interface ErrorInvoiceDetailDialogProps {
 }
 
 const formSchema = z.object({
-  facturado_a: z.string().min(1, "El cliente es obligatorio."),
+  facturado_a: z.string().min(1, "El proveedor es obligatorio."),
   numero_factura: z.string().min(1, "El número de factura es obligatorio."),
-  fecha_emision: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Formato debe ser YYYY-MM-DD." }),
-  total: z.coerce.number({ invalid_type_error: "El total debe ser un número."}).positive("El total debe ser positivo."),
+  fecha_emision: z.date({ required_error: "La fecha de emisión es obligatoria." }),
+  subtotal: z.coerce.number({ invalid_type_error: "El subtotal debe ser un número."}).positive("El subtotal debe ser positivo."),
+  impuesto: z.coerce.number({ required_error: "Debe seleccionar un impuesto." }).min(0, "El impuesto no puede ser negativo."),
   descripcion: z.string().min(1, "La descripción es obligatoria."),
+  // Hidden fields managed by provider selection
+  porcentaje_staffing: z.number(),
+  porcentaje_proyecto: z.number(),
+  porcentaje_software: z.number(),
+  numero_cuenta_bancaria: z.string(),
 });
 
-export function ErrorInvoiceDetailDialog({
-  invoice,
-  isOpen,
-  onOpenChange,
-}: ErrorInvoiceDetailDialogProps) {
+export function ErrorInvoiceDetailDialog({ invoice, isOpen, onOpenChange }: ErrorInvoiceDetailDialogProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = React.useState(false);
@@ -52,30 +55,63 @@ export function ErrorInvoiceDetailDialog({
     defaultValues: {
       facturado_a: "",
       numero_factura: "",
-      fecha_emision: "",
-      total: 0,
+      fecha_emision: new Date(),
+      subtotal: 0,
+      impuesto: 7, // Default to 7%
       descripcion: "",
+      porcentaje_staffing: 0,
+      porcentaje_proyecto: 0,
+      porcentaje_software: 0,
+      numero_cuenta_bancaria: "",
     },
   });
-  
+
   React.useEffect(() => {
     if (invoice && isOpen) {
+      // Adding 'T00:00:00' ensures the date is parsed in the local timezone, preventing off-by-one-day errors.
+      const emissionDateStr = invoice.raw_data?.fecha_emision;
+      const emissionDate = emissionDateStr ? new Date(`${emissionDateStr}T00:00:00`) : new Date();
+      
       form.reset({
         facturado_a: invoice.raw_data?.facturado_a || "",
         numero_factura: invoice.raw_data?.numero_factura || "",
-        fecha_emision: invoice.raw_data?.fecha_emision || "",
-        total: invoice.raw_data?.total || 0,
+        fecha_emision: emissionDate,
+        subtotal: invoice.raw_data?.total || 0, // Assuming old 'total' is the new 'subtotal'
+        impuesto: 7,
         descripcion: invoice.raw_data?.descripcion || "",
+        porcentaje_staffing: 0,
+        porcentaje_proyecto: 0,
+        porcentaje_software: 0,
+        numero_cuenta_bancaria: "",
       });
     }
   }, [invoice, form, isOpen]);
+
+  const watchedSubtotal = form.watch("subtotal");
+  const watchedImpuesto = form.watch("impuesto");
+
+  const calculatedTotal = React.useMemo(() => {
+    const sub = Number(watchedSubtotal) || 0;
+    const taxRate = Number(watchedImpuesto) || 0;
+    return sub + (sub * (taxRate / 100));
+  }, [watchedSubtotal, watchedImpuesto]);
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!invoice) return;
     setIsSaving(true);
+
+    const total = calculatedTotal;
+
+    const correctedData = {
+      ...values,
+      fecha_emision: format(values.fecha_emision, 'yyyy-MM-dd'),
+      total,
+      subtotal: values.subtotal, // ensure subtotal is passed
+      impuesto: values.impuesto,
+    };
     
-    const result = await correctAndMoveInvoice(invoice._id, invoice.raw_data, values);
+    const result = await correctAndMoveInvoice(invoice._id, invoice.raw_data, correctedData);
 
     if (result.success) {
       toast({
@@ -94,9 +130,18 @@ export function ErrorInvoiceDetailDialog({
     setIsSaving(false);
   }
   
-  if (!invoice) {
-    return null;
-  }
+  if (!invoice) return null;
+
+  const handleProviderChange = (providerName: string) => {
+    const provider = allProviders.find(p => p.name === providerName);
+    if (provider) {
+        form.setValue('facturado_a', provider.name);
+        form.setValue('porcentaje_staffing', provider.staffingPercentage);
+        form.setValue('porcentaje_proyecto', provider.projectPercentage);
+        form.setValue('porcentaje_software', provider.softwarePercentage);
+        form.setValue('numero_cuenta_bancaria', provider.accountCode);
+    }
+  };
 
   const pdfUrl = process.env.NEXT_PUBLIC_SHAREPOINT_ERROR_PDF_BASE_URL && invoice.file_name
     ? `${process.env.NEXT_PUBLIC_SHAREPOINT_ERROR_PDF_BASE_URL}/${invoice.file_name}`
@@ -114,7 +159,6 @@ export function ErrorInvoiceDetailDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-            {/* Left Column (2/3 width): Editable Form */}
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center text-lg">
@@ -123,58 +167,134 @@ export function ErrorInvoiceDetailDialog({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="facturado_a"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Facturado A (Cliente)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nombre del cliente" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="numero_factura"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Número de Factura</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ej: INV-2024-001" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="fecha_emision"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fecha de Emisión</FormLabel>
-                      <FormControl>
-                        <Input placeholder="YYYY-MM-DD" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="total"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Total</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" placeholder="Ej: 1250.50" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="facturado_a"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Proveedor</FormLabel>
+                        <Select onValueChange={handleProviderChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Seleccione un proveedor" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {providerData.map(category => (
+                               <SelectGroup key={category.code}>
+                                 <FormLabel className="px-2 py-1.5 text-sm font-semibold">{category.name}</FormLabel>
+                                 {category.providers.map(provider => (
+                                    <SelectItem key={provider.name} value={provider.name}>
+                                        {provider.name}
+                                    </SelectItem>
+                                 ))}
+                               </SelectGroup>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="numero_factura"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Número de Factura</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: INV-2024-001" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <FormField
+                    control={form.control}
+                    name="fecha_emision"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Fecha de Emisión</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP", { locale: es })
+                                ) : (
+                                  <span>Seleccione una fecha</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                      control={form.control}
+                      name="impuesto"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Impuesto</FormLabel>
+                          <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value)}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Seleccione el impuesto" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="7">C1 = 7%</SelectItem>
+                              <SelectItem value="10">C2 = 10%</SelectItem>
+                              <SelectItem value="15">C3 = 15%</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <FormField
+                    control={form.control}
+                    name="subtotal"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subtotal</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" placeholder="Ej: 1250.50" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormItem>
+                    <FormLabel>Total Calculado</FormLabel>
+                    <FormControl>
+                      <Input value={calculatedTotal.toFixed(2)} readOnly disabled className="bg-muted" />
+                    </FormControl>
+                  </FormItem>
+                 </div>
                 <FormField
                   control={form.control}
                   name="descripcion"
@@ -191,7 +311,6 @@ export function ErrorInvoiceDetailDialog({
               </CardContent>
             </Card>
 
-            {/* Right Column (1/3 width): PDF Viewer Link */}
             <Card className="lg:col-span-1 flex flex-col items-center justify-center p-6 text-center">
               <CardHeader>
                   <CardTitle>Documento Original</CardTitle>
