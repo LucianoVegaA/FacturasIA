@@ -2,11 +2,10 @@ import { PublicClientApplication, LogLevel, type Configuration, type PopupReques
 
 const MSAL_CLIENT_ID = process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID;
 const MSAL_TENANT_ID = process.env.NEXT_PUBLIC_AZURE_AD_TENANT_ID;
-const MSAL_REDIRECT_URI = process.env.NEXT_PUBLIC_AZURE_AD_REDIRECT_URI;
 
-if (!MSAL_CLIENT_ID || !MSAL_TENANT_ID || !MSAL_REDIRECT_URI) {
+if (!MSAL_CLIENT_ID || !MSAL_TENANT_ID) {
   throw new Error(
-    "Azure AD environment variables (NEXT_PUBLIC_AZURE_AD_CLIENT_ID, NEXT_PUBLIC_AZURE_AD_TENANT_ID, NEXT_PUBLIC_AZURE_AD_REDIRECT_URI) are not set. " +
+    "Azure AD environment variables (NEXT_PUBLIC_AZURE_AD_CLIENT_ID, NEXT_PUBLIC_AZURE_AD_TENANT_ID) are not set. " +
     "Please create an Azure AD App Registration and add these to your .env file."
   );
 }
@@ -15,8 +14,6 @@ export const msalConfig: Configuration = {
   auth: {
     clientId: MSAL_CLIENT_ID,
     authority: `https://login.microsoftonline.com/${MSAL_TENANT_ID}`,
-    redirectUri: MSAL_REDIRECT_URI,
-    postLogoutRedirectUri: MSAL_REDIRECT_URI, // Optional: redirect after logout
     navigateToLoginRequestUrl: false, // Important for single-page applications
   },
   cache: {
