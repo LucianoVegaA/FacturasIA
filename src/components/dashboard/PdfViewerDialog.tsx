@@ -18,6 +18,10 @@ interface PdfViewerDialogProps {
 export function PdfViewerDialog({ pdfUrl, fileName, isOpen, onOpenChange }: PdfViewerDialogProps) {
   if (!pdfUrl) return null;
 
+  // Use Google Docs viewer to embed the PDF. This improves cross-browser compatibility and helps avoid CORS issues.
+  // The provided pdfUrl must be publicly accessible on the internet for this to work.
+  const embedUrl = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
@@ -29,7 +33,7 @@ export function PdfViewerDialog({ pdfUrl, fileName, isOpen, onOpenChange }: PdfV
           </DialogHeader>
         <div className="flex-1 overflow-hidden">
             <iframe
-            src={pdfUrl}
+            src={embedUrl}
             title={`PDF Viewer - ${fileName}`}
             className="w-full h-full border-0"
             />
