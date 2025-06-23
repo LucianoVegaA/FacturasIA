@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import type { Invoice } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Download, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown, Upload, Save, Loader2 } from "lucide-react"; 
+import { ChevronLeft, ChevronRight, Eye, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown, Upload, Save } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -33,8 +33,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { fetchPdfAsBase64 } from "@/app/actions/fetchPdfProxy";
 
 interface InvoiceTableProps {
   invoices: Invoice[];
@@ -44,6 +42,7 @@ interface InvoiceTableProps {
   sortOrder: 'asc' | 'desc' | null;
   onSort: (key: keyof Invoice) => void;
   onExportToSam?: () => void; 
+  onViewPdf: (url: string, fileName: string) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -118,12 +117,10 @@ const EditableInvoiceNumberCell: React.FC<{
 EditableInvoiceNumberCell.displayName = 'EditableInvoiceNumberCell';
 
 
-export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange, sortKey, sortOrder, onSort, onExportToSam }: InvoiceTableProps) {
+export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange, sortKey, sortOrder, onSort, onExportToSam, onViewPdf }: InvoiceTableProps) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
   const [pendingUpdate, setPendingUpdate] = React.useState<{ invoiceId: string; newAccountNumber: string } | null>(null);
-  const [isDownloading, setIsDownloading] = React.useState<string | null>(null);
-  const { toast } = useToast();
 
   const totalPages = Math.ceil(invoices.length / ITEMS_PER_PAGE);
   const paginatedInvoices = invoices.slice(
@@ -151,41 +148,10 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
     setPendingUpdate(null);
   };
   
-  const handleDownloadPdf = async (invoiceId: string, pdfUrl: string, fileName: string) => {
-    setIsDownloading(invoiceId);
-    try {
-        const result = await fetchPdfAsBase64(pdfUrl);
-        if (!result.success || !result.data) {
-            throw new Error(result.error || "No se pudieron obtener los datos del PDF.");
-        }
-        
-        const safeFileName = fileName.replace(/[^a-zA-Z0-9-_\.]/g, '_');
-        
-        const byteCharacters = atob(result.data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: result.contentType || 'application/pdf' });
-        
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = safeFileName.endsWith('.pdf') ? safeFileName : `${safeFileName}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-
-    } catch (error: any) {
-        toast({
-          title: "Error de Descarga",
-          description: error.message || "No se pudo descargar el PDF.",
-          variant: "destructive",
-        });
-    } finally {
-        setIsDownloading(null);
-    }
+  const handleViewPdfClick = (invoice: Invoice) => {
+    const pdfUrl = `https://newhnl-my.sharepoint.com/personal/lvega_hypernovalabs_com/Documents/Facturas_Procesadas/${invoice.invoice_number}.pdf`;
+    const fileName = `${invoice.invoice_number}.pdf`;
+    onViewPdf(pdfUrl, fileName);
   };
 
   return (
@@ -211,7 +177,7 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
                   <SortableHeader columnKey="due_date" title="Fecha Vencimiento" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
                   <SortableHeader columnKey="numero_cuenta_bancaria" title="Número de Cuenta" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} />
                   <SortableHeader columnKey="total" title="Total" currentSortKey={sortKey} currentSortOrder={sortOrder} onSort={onSort} className="text-right" />
-                  <TableHead className="text-center">Descargar PDF</TableHead>
+                  <TableHead className="text-center">Ver PDF</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -255,29 +221,18 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
                       </TableCell>
                       <TableCell className="text-right">${invoice.total.toFixed(2)}</TableCell>
                       <TableCell className="text-center">
-                        {invoice.pdf_url && invoice._id ? (
-                          <Button
+                        <Button
                             variant="outline"
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDownloadPdf(invoice._id!, invoice.pdf_url!, invoice.invoice_number || 'factura');
+                              handleViewPdfClick(invoice);
                             }}
-                            disabled={isDownloading === invoice._id}
+                            disabled={!invoice.invoice_number || invoice.invoice_number === 'N/A'}
                           >
-                            {isDownloading === invoice._id ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Download className="mr-2 h-4 w-4" />
-                            )}
-                            {isDownloading === invoice._id ? 'Descargando...' : 'Descargar'}
-                          </Button>
-                        ) : (
-                          <Button variant="outline" size="sm" disabled>
-                            <Download className="mr-2 h-4 w-4" />
-                             No Disponible
-                          </Button>
-                        )}
+                          <Eye className="mr-2 h-4 w-4" />
+                          Ver PDF
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
