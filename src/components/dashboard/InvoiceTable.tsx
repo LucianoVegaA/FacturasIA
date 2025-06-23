@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -35,7 +34,6 @@ import { cn } from "@/lib/utils";
 
 interface InvoiceTableProps {
   invoices: Invoice[];
-  onRowClick: (invoice: Invoice) => void;
   onAccountChange?: (invoiceId: string, newAccountNumber: string) => void;
   sortKey: keyof Invoice | null;
   sortOrder: 'asc' | 'desc' | null;
@@ -72,7 +70,7 @@ const SortableHeader: React.FC<{
 };
 
 
-export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, sortOrder, onSort, onImportToSam }: InvoiceTableProps) {
+export function InvoiceTable({ invoices, onAccountChange, sortKey, sortOrder, onSort, onImportToSam }: InvoiceTableProps) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
   const [pendingUpdate, setPendingUpdate] = React.useState<{ invoiceId: string; newAccountNumber: string } | null>(null);
@@ -134,8 +132,6 @@ export function InvoiceTable({ invoices, onRowClick, onAccountChange, sortKey, s
                   paginatedInvoices.map((invoice) => (
                     <TableRow
                       key={invoice._id || invoice.invoice_number}
-                      onClick={() => onRowClick(invoice)}
-                      className="cursor-pointer"
                     >
                       <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
                       <TableCell>{invoice.billed_to}</TableCell>

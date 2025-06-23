@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -6,7 +5,6 @@ import { Upload, ArrowUp, ArrowDown } from "lucide-react";
 import { InvoiceTable } from "@/components/dashboard/InvoiceTable";
 import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/InvoiceFilter";
 import type { Invoice, SimpleErrorFile } from "@/lib/types";
-import { InvoiceSummaryCard } from "@/components/dashboard/InvoiceSummaryCard";
 import { ErrorFileList } from "@/components/dashboard/ErrorFileList"; 
 import { updateInvoiceAccountInDB } from "@/app/actions/updateInvoiceAccount";
 import { useToast } from "@/hooks/use-toast";
@@ -28,7 +26,6 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
     searchTerm: "",
     accountNumber: "all",
   });
-  const [selectedInvoiceForSummary, setSelectedInvoiceForSummary] = React.useState<Invoice | null>(null);
   const { toast } = useToast();
 
   const [sortKey, setSortKey] = React.useState<SortKey>(null);
@@ -120,14 +117,6 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
   }, [filteredInvoices, sortKey, sortOrder]);
 
 
-  const handleRowClick = (invoice: Invoice) => {
-    setSelectedInvoiceForSummary(invoice);
-  };
-
-  const handleCloseSummary = () => {
-    setSelectedInvoiceForSummary(null);
-  };
-
   const handleImportToSam = () => {
     console.log("Importar Facturas a SAM button clicked");
     // const invoicesToImport = managedInvoices.filter(inv => inv.numero_cuenta_bancaria && inv.numero_cuenta_bancaria !== 'N/A');
@@ -177,16 +166,12 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
       />
       <InvoiceTable 
         invoices={sortedAndFilteredInvoices} 
-        onRowClick={handleRowClick}
         onAccountChange={handleAccountUpdate}
         sortKey={sortKey}
         sortOrder={sortOrder}
         onSort={handleSort}
         onImportToSam={handleImportToSam} 
       />
-      {selectedInvoiceForSummary && (
-        <InvoiceSummaryCard invoice={selectedInvoiceForSummary} onClose={handleCloseSummary} />
-      )}
     </>
   );
 }
