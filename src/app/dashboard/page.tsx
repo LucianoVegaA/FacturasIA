@@ -1,7 +1,7 @@
 
 import * as React from "react";
 import { connectToDatabase } from "@/lib/mongodb";
-import type { Invoice, SimpleErrorFile } from "@/lib/types"; 
+import type { Invoice, ErrorInvoice } from "@/lib/types"; 
 import { InvoiceDashboardClient } from "@/components/dashboard/InvoiceDashboardClient";
 import type { Document } from 'mongodb'; 
 import { transformRawInvoice } from "@/lib/types";
@@ -20,17 +20,21 @@ async function getInvoicesFromDB(): Promise<Invoice[]> {
   }
 }
 
-async function getErrorFilesFromDB(): Promise<SimpleErrorFile[]> {
+async function getErrorFilesFromDB(): Promise<ErrorInvoice[]> {
   try {
     const { db } = await connectToDatabase();
-    const errorFilesCollection = db.collection<Document>("Facturas con Error"); 
+    const errorFilesCollection = db.collection<Document>("Facturas con Error");
     const rawErrorFiles = await errorFilesCollection.find({}).toArray();
-    
-    return rawErrorFiles.map(doc => ({
-      _id: doc._id.toString(),
-      file_name: doc.file_name || null,
-      pdf_url: doc.file_url || null, // Map the file_url to pdf_url
-    }));
+
+    return rawErrorFiles.map(doc => {
+      const { _id, ...rest } = doc;
+      return {
+        _id: _id.toString(),
+        file_name: doc.file_name || null,
+        pdf_url: doc.file_url || null, // Map the file_url to pdf_url
+        raw_data: rest,
+      };
+    });
   } catch (error) {
     console.error("Failed to fetch error files from DB:", error);
     return [];

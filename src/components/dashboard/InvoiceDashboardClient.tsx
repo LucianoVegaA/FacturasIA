@@ -5,7 +5,7 @@ import * as React from "react";
 import { Upload, ArrowUp, ArrowDown } from "lucide-react"; 
 import { InvoiceTable } from "@/components/dashboard/InvoiceTable";
 import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/InvoiceFilter";
-import type { Invoice, SimpleErrorFile } from "@/lib/types";
+import type { Invoice, ErrorInvoice } from "@/lib/types";
 import { ErrorFileList } from "@/components/dashboard/ErrorFileList"; 
 import { updateInvoiceAccountInDB } from "@/app/actions/updateInvoiceAccount";
 import { updateInvoiceNumberInDB } from "@/app/actions/updateInvoiceNumber";
@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface InvoiceDashboardClientProps {
   initialInvoices: Invoice[];
-  initialErrorFiles: SimpleErrorFile[]; 
+  initialErrorFiles: ErrorInvoice[]; 
   availableMonths: string[];
 }
 

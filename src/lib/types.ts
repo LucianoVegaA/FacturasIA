@@ -1,5 +1,6 @@
 
 
+
 export interface InvoiceItemDetail {
   description: string;
   quantity: number;
@@ -58,11 +59,12 @@ export interface Invoice {
   pdf_url: string | null;
 }
 
-// New simple type for files from 'facturas_con_error' collection
-export interface SimpleErrorFile {
+// Represents an invoice from the 'Facturas con Error' collection
+export interface ErrorInvoice {
   _id: string;
   file_name: string | null;
   pdf_url: string | null;
+  raw_data: { [key: string]: any }; // The entire raw document from MongoDB
 }
 
 
