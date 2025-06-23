@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -29,7 +28,6 @@ export function ErrorFileList({ errorFiles }: ErrorFileListProps) {
 
   const FileItem = ({ file }: { file: SimpleErrorFile }) => {
     const hasPdf = !!file.pdf_url;
-    // Use a button for clickable items for accessibility, otherwise use a div.
     const Component = hasPdf ? 'button' : 'div';
     const props = hasPdf ? { onClick: () => handleFileClick(file), "aria-label": `Ver PDF de ${file.file_name}` } : {};
 
@@ -38,13 +36,13 @@ export function ErrorFileList({ errorFiles }: ErrorFileListProps) {
         {...props}
         key={file._id}
         className={cn(
-          "flex-shrink-0 w-40 h-32 rounded-lg border-2 border-dashed border-destructive/50 bg-destructive/5 flex flex-col items-center justify-center text-center p-2 overflow-hidden",
-          "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+          "flex-shrink-0 w-64 h-auto rounded-md border border-destructive/50 bg-destructive/10 flex flex-row items-center text-left p-2.5 gap-3 overflow-hidden",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
            hasPdf && "hover:border-primary hover:bg-primary/10 transition-colors duration-200 cursor-pointer"
         )}
       >
-        <FileText className="h-6 w-6 mb-2 text-destructive flex-shrink-0" />
-        <p className="text-xs font-medium text-destructive-foreground break-words w-full">
+        <FileText className="h-5 w-5 text-destructive flex-shrink-0" />
+        <p className="text-sm font-medium text-foreground truncate flex-grow">
           {file.file_name}
         </p>
       </Component>
