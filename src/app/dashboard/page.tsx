@@ -23,7 +23,7 @@ async function getInvoicesFromDB(): Promise<Invoice[]> {
 async function getErrorFilesFromDB(): Promise<SimpleErrorFile[]> {
   try {
     const { db } = await connectToDatabase();
-    const errorFilesCollection = db.collection<Document>("Facturas con error"); 
+    const errorFilesCollection = db.collection<Document>("Facturas con Error"); 
     const rawErrorFiles = await errorFilesCollection.find({}).toArray();
     
     return rawErrorFiles.map(doc => ({
