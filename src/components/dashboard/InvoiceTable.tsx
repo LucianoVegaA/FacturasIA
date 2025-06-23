@@ -149,12 +149,11 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
   
   const handleViewPdfClick = (invoice: Invoice) => {
     const baseUrl = process.env.NEXT_PUBLIC_SHAREPOINT_PDF_BASE_URL;
-    if (!baseUrl || !invoice.invoice_number || invoice.invoice_number === 'N/A') {
-      console.error("La URL base de SharePoint o el número de factura no están disponibles.");
+    if (!baseUrl || !invoice.file_name) {
+      console.error("La URL base de SharePoint o el nombre del archivo no están disponibles.");
       return;
     }
-    // Based on your example (e.g., 105.pdf), we'll construct the URL using the invoice_number.
-    const pdfUrl = `${baseUrl}/${invoice.invoice_number}.pdf`;
+    const pdfUrl = `${baseUrl}/${invoice.file_name}`;
     window.open(pdfUrl, '_blank', 'noopener,noreferrer');
   };
 
@@ -232,7 +231,7 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
                               e.stopPropagation();
                               handleViewPdfClick(invoice);
                             }}
-                            disabled={!invoice.invoice_number || invoice.invoice_number === 'N/A' || !process.env.NEXT_PUBLIC_SHAREPOINT_PDF_BASE_URL}
+                            disabled={!invoice.file_name || !process.env.NEXT_PUBLIC_SHAREPOINT_PDF_BASE_URL}
                           >
                           <Eye className="mr-2 h-4 w-4" />
                           Ver PDF

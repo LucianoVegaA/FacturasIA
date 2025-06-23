@@ -10,6 +10,7 @@ export interface InvoiceItemDetail {
 export interface Invoice {
   _id?: string; // MongoDB ObjectId as string
   onedrive_file_id: string;
+  file_name: string | null;
   billed_to: string;
   invoice_number: string;
   date_of_issue: string; // "YYYY-MM-DD"
@@ -106,6 +107,7 @@ export function transformRawInvoice(rawData: any): Invoice {
   const transformed: Invoice = {
     _id: rawData._id?.toString(),
     onedrive_file_id: rawData.identificador || `fallback_id_${rawData._id?.toString()}`,
+    file_name: rawData.file_name || null,
     billed_to: rawData.facturado_a || "N/A",
     invoice_number: rawData.numero_factura || "N/A",
     date_of_issue: rawData.fecha_emision || new Date().toISOString().split('T')[0],
