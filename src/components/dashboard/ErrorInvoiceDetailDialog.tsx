@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertCircle, Loader2, Save, FileText, ExternalLink, AlertTriangle } from "lucide-react";
 import type { ErrorInvoice } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { updateErrorInvoiceInDB } from "@/app/actions/updateErrorInvoice";
+import { correctAndMoveInvoice } from "@/app/actions/updateErrorInvoice";
 
 interface ErrorInvoiceDetailDialogProps {
   invoice: ErrorInvoice | null;
@@ -75,19 +75,19 @@ export function ErrorInvoiceDetailDialog({
     if (!invoice) return;
     setIsSaving(true);
     
-    const result = await updateErrorInvoiceInDB(invoice._id, values);
+    const result = await correctAndMoveInvoice(invoice._id, invoice.raw_data, values);
 
     if (result.success) {
       toast({
         title: "Éxito",
-        description: "La factura ha sido actualizada. La información se refrescará.",
+        description: "La factura ha sido corregida y movida al registro principal.",
       });
       router.refresh();
       onOpenChange(false);
     } else {
       toast({
         title: "Error al Guardar",
-        description: result.error || "No se pudo actualizar la factura en la base de datos.",
+        description: result.error || "No se pudo procesar la factura.",
         variant: "destructive",
       });
     }
@@ -113,9 +113,9 @@ export function ErrorInvoiceDetailDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
-            {/* Left Column: Editable Form */}
-            <Card>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
+            {/* Left Column (2/3 width): Editable Form */}
+            <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center text-lg">
                   <AlertCircle className="mr-2 h-5 w-5 text-destructive" />
@@ -191,8 +191,8 @@ export function ErrorInvoiceDetailDialog({
               </CardContent>
             </Card>
 
-            {/* Right Column: PDF Viewer Link */}
-            <Card className="flex flex-col items-center justify-center p-6 text-center">
+            {/* Right Column (1/3 width): PDF Viewer Link */}
+            <Card className="lg:col-span-1 flex flex-col items-center justify-center p-6 text-center">
               <CardHeader>
                   <CardTitle>Documento Original</CardTitle>
               </CardHeader>
@@ -201,7 +201,7 @@ export function ErrorInvoiceDetailDialog({
                       <>
                         <FileText className="h-20 w-20 text-primary/80" />
                         <p className="text-muted-foreground max-w-sm">
-                          Para corregir la factura, haga clic en el botón para abrir el documento original en una nueva pestaña.
+                          Haga clic en el botón para abrir el documento original en una nueva pestaña como referencia.
                         </p>
                         <Button
                             type="button"
@@ -222,13 +222,13 @@ export function ErrorInvoiceDetailDialog({
               </CardContent>
             </Card>
             
-            <DialogFooter className="col-span-1 lg:col-span-2 pt-4 border-t mt-auto">
+            <DialogFooter className="col-span-1 lg:col-span-3 pt-4 border-t mt-auto">
                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSaving}>
                 {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                Guardar Cambios
+                Corregir y Procesar
               </Button>
             </DialogFooter>
           </form>
