@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import type { Invoice } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Download, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown, Upload, Save } from "lucide-react"; 
+import { ChevronLeft, ChevronRight, Download, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown, Upload, Save, Loader2 } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -32,6 +33,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { fetchPdfAsBase64 } from "@/app/actions/fetchPdfProxy";
 
 interface InvoiceTableProps {
   invoices: Invoice[];
@@ -119,6 +122,8 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
   const [pendingUpdate, setPendingUpdate] = React.useState<{ invoiceId: string; newAccountNumber: string } | null>(null);
+  const [isDownloading, setIsDownloading] = React.useState<string | null>(null);
+  const { toast } = useToast();
 
   const totalPages = Math.ceil(invoices.length / ITEMS_PER_PAGE);
   const paginatedInvoices = invoices.slice(
@@ -144,6 +149,43 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
   const cancelAccountChange = () => {
     setIsConfirmDialogOpen(false);
     setPendingUpdate(null);
+  };
+  
+  const handleDownloadPdf = async (invoiceId: string, pdfUrl: string, fileName: string) => {
+    setIsDownloading(invoiceId);
+    try {
+        const result = await fetchPdfAsBase64(pdfUrl);
+        if (!result.success || !result.data) {
+            throw new Error(result.error || "No se pudieron obtener los datos del PDF.");
+        }
+        
+        const safeFileName = fileName.replace(/[^a-zA-Z0-9-_\.]/g, '_');
+        
+        const byteCharacters = atob(result.data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: result.contentType || 'application/pdf' });
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = safeFileName.endsWith('.pdf') ? safeFileName : `${safeFileName}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+
+    } catch (error: any) {
+        toast({
+          title: "Error de Descarga",
+          description: error.message || "No se pudo descargar el PDF.",
+          variant: "destructive",
+        });
+    } finally {
+        setIsDownloading(null);
+    }
   };
 
   return (
@@ -213,17 +255,27 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
                       </TableCell>
                       <TableCell className="text-right">${invoice.total.toFixed(2)}</TableCell>
                       <TableCell className="text-center">
-                        {invoice.pdf_url ? (
-                          <Button asChild variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
-                            <a href={invoice.pdf_url} target="_blank" rel="noopener noreferrer">
-                              <Download className="mr-2 h-4 w-4" />
-                              PDF
-                            </a>
+                        {invoice.pdf_url && invoice._id ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownloadPdf(invoice._id!, invoice.pdf_url!, invoice.invoice_number || 'factura');
+                            }}
+                            disabled={isDownloading === invoice._id}
+                          >
+                            {isDownloading === invoice._id ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <Download className="mr-2 h-4 w-4" />
+                            )}
+                            {isDownloading === invoice._id ? 'Descargando...' : 'Descargar'}
                           </Button>
                         ) : (
-                          <Button variant="outline" size="sm" disabled onClick={(e) => e.stopPropagation()}>
+                          <Button variant="outline" size="sm" disabled>
                             <Download className="mr-2 h-4 w-4" />
-                            PDF
+                             No Disponible
                           </Button>
                         )}
                       </TableCell>
