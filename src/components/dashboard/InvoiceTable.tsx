@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import type { Invoice } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Download, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown, Upload } from "lucide-react"; 
+import { ChevronLeft, ChevronRight, Download, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown, Upload, Save } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -31,10 +31,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 interface InvoiceTableProps {
   invoices: Invoice[];
   onAccountChange?: (invoiceId: string, newAccountNumber: string) => void;
+  onInvoiceNumberChange?: (invoiceId: string, newInvoiceNumber: string) => void;
   sortKey: keyof Invoice | null;
   sortOrder: 'asc' | 'desc' | null;
   onSort: (key: keyof Invoice) => void;
@@ -68,9 +70,52 @@ const SortableHeader: React.FC<{
     </TableHead>
   );
 };
+SortableHeader.displayName = "SortableHeader";
 
 
-export function InvoiceTable({ invoices, onAccountChange, sortKey, sortOrder, onSort, onExportToSam }: InvoiceTableProps) {
+const EditableInvoiceNumberCell: React.FC<{
+  invoice: Invoice;
+  onSave: (invoiceId: string, newInvoiceNumber: string) => void;
+}> = ({ invoice, onSave }) => {
+  const [inputValue, setInputValue] = React.useState('');
+
+  const handleSaveClick = () => {
+    if (inputValue.trim() && invoice._id) {
+      onSave(invoice._id, inputValue.trim());
+      setInputValue(''); // Reset after saving
+    }
+  };
+
+  if (invoice.invoice_number !== 'N/A' || !invoice._id) {
+    return <span className="font-medium">{invoice.invoice_number}</span>;
+  }
+
+  return (
+    <div className="flex items-center gap-2 min-w-[250px]">
+      <Input
+        placeholder="Asignar N° Factura"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') handleSaveClick(); }}
+        className="h-9 text-xs"
+        onClick={(e) => e.stopPropagation()}
+      />
+      <Button
+        size="sm"
+        onClick={(e) => { e.stopPropagation(); handleSaveClick(); }}
+        disabled={!inputValue.trim()}
+        className="h-9"
+      >
+        <Save className="mr-2 h-4 w-4" />
+        Guardar
+      </Button>
+    </div>
+  );
+};
+EditableInvoiceNumberCell.displayName = 'EditableInvoiceNumberCell';
+
+
+export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange, sortKey, sortOrder, onSort, onExportToSam }: InvoiceTableProps) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
   const [pendingUpdate, setPendingUpdate] = React.useState<{ invoiceId: string; newAccountNumber: string } | null>(null);
@@ -133,7 +178,13 @@ export function InvoiceTable({ invoices, onAccountChange, sortKey, sortOrder, on
                     <TableRow
                       key={invoice._id || invoice.invoice_number}
                     >
-                      <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                      <TableCell>
+                        {onInvoiceNumberChange ? (
+                          <EditableInvoiceNumberCell invoice={invoice} onSave={onInvoiceNumberChange} />
+                        ) : (
+                          <span className="font-medium">{invoice.invoice_number}</span>
+                        )}
+                      </TableCell>
                       <TableCell>{invoice.billed_to}</TableCell>
                       <TableCell>{new Date(invoice.date_of_issue).toLocaleDateString()}</TableCell>
                       <TableCell>{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : 'N/A'}</TableCell>

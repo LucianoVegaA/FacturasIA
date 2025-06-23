@@ -7,6 +7,7 @@ import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/Invoi
 import type { Invoice, SimpleErrorFile } from "@/lib/types";
 import { ErrorFileList } from "@/components/dashboard/ErrorFileList"; 
 import { updateInvoiceAccountInDB } from "@/app/actions/updateInvoiceAccount";
+import { updateInvoiceNumberInDB } from "@/app/actions/updateInvoiceNumber";
 import { useToast } from "@/hooks/use-toast";
 
 interface InvoiceDashboardClientProps {
@@ -153,6 +154,36 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
     }
   };
 
+  const handleInvoiceNumberUpdate = async (invoiceId: string, newInvoiceNumber: string) => {
+    // Optimistically update UI
+    const originalInvoices = [...managedInvoices];
+    setManagedInvoices(prevInvoices =>
+      prevInvoices.map(inv =>
+        inv._id === invoiceId 
+          ? { ...inv, invoice_number: newInvoiceNumber } 
+          : inv
+      )
+    );
+    
+    const result = await updateInvoiceNumberInDB(invoiceId, newInvoiceNumber);
+
+    if (result.success) {
+      toast({
+        title: "Número de Factura Actualizado",
+        description: `El número de la factura se actualizó correctamente a ${newInvoiceNumber}.`,
+        variant: "default", 
+      });
+    } else {
+      toast({
+        title: "Actualización Fallida",
+        description: result.error || "No se pudo actualizar el número de factura. Por favor, inténtelo de nuevo.",
+        variant: "destructive",
+      });
+      // Revert optimistic update on failure
+       setManagedInvoices(originalInvoices);
+    }
+  };
+
 
   return (
     <>
@@ -167,6 +198,7 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
       <InvoiceTable 
         invoices={sortedAndFilteredInvoices} 
         onAccountChange={handleAccountUpdate}
+        onInvoiceNumberChange={handleInvoiceNumberUpdate}
         sortKey={sortKey}
         sortOrder={sortOrder}
         onSort={handleSort}
