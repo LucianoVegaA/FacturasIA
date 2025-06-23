@@ -149,7 +149,13 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
   };
   
   const handleViewPdfClick = (invoice: Invoice) => {
-    const pdfUrl = `https://newhnl-my.sharepoint.com/personal/lvega_hypernovalabs_com/Documents/Facturas_Procesadas/${invoice.invoice_number}.pdf`;
+    const baseUrl = process.env.NEXT_PUBLIC_SHAREPOINT_PDF_BASE_URL;
+    if (!baseUrl) {
+      console.error("La URL base de SharePoint para los PDF no está configurada en las variables de entorno (NEXT_PUBLIC_SHAREPOINT_PDF_BASE_URL).");
+      // The button will be disabled if the env var is not set, so this is a fallback.
+      return;
+    }
+    const pdfUrl = `${baseUrl}/${invoice.invoice_number}.pdf`;
     const fileName = `${invoice.invoice_number}.pdf`;
     onViewPdf(pdfUrl, fileName);
   };
@@ -228,7 +234,7 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
                               e.stopPropagation();
                               handleViewPdfClick(invoice);
                             }}
-                            disabled={!invoice.invoice_number || invoice.invoice_number === 'N/A'}
+                            disabled={!invoice.invoice_number || invoice.invoice_number === 'N/A' || !process.env.NEXT_PUBLIC_SHAREPOINT_PDF_BASE_URL}
                           >
                           <Eye className="mr-2 h-4 w-4" />
                           Ver PDF
