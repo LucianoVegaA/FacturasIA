@@ -29,6 +29,7 @@ async function getErrorFilesFromDB(): Promise<SimpleErrorFile[]> {
     return rawErrorFiles.map(doc => ({
       _id: doc._id.toString(),
       file_name: doc.file_name || null,
+      pdf_url: doc.file_url || null, // Map the file_url to pdf_url
     }));
   } catch (error) {
     console.error("Failed to fetch error files from DB:", error);

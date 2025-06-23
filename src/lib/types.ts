@@ -61,6 +61,7 @@ export interface Invoice {
 export interface SimpleErrorFile {
   _id: string;
   file_name: string | null;
+  pdf_url: string | null;
 }
 
 
