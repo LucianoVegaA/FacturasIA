@@ -153,6 +153,7 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
       console.error("La URL base de SharePoint o el número de factura no están disponibles.");
       return;
     }
+    // Based on your example (e.g., 105.pdf), we'll construct the URL using the invoice_number.
     const pdfUrl = `${baseUrl}/${invoice.invoice_number}.pdf`;
     window.open(pdfUrl, '_blank', 'noopener,noreferrer');
   };
