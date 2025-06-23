@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -18,7 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertCircle, Loader2, Save } from "lucide-react";
+import { AlertCircle, Loader2, Save, FileText, ExternalLink, AlertTriangle } from "lucide-react";
 import type { ErrorInvoice } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { updateErrorInvoiceInDB } from "@/app/actions/updateErrorInvoice";
@@ -190,21 +191,32 @@ export function ErrorInvoiceDetailDialog({
               </CardContent>
             </Card>
 
-            {/* Right Column: PDF Viewer */}
-            <Card className="flex flex-col">
+            {/* Right Column: PDF Viewer Link */}
+            <Card className="flex flex-col items-center justify-center p-6 text-center">
               <CardHeader>
-                  <CardTitle>Visor de PDF</CardTitle>
+                  <CardTitle>Documento Original</CardTitle>
               </CardHeader>
-              <CardContent className="flex-1">
+              <CardContent className="flex flex-col items-center justify-center gap-4 flex-1">
                   {pdfUrl ? (
-                      <iframe
-                          src={pdfUrl}
-                          title={`Visor de PDF - ${invoice.file_name}`}
-                          className="w-full h-full border rounded-md"
-                      />
+                      <>
+                        <FileText className="h-20 w-20 text-primary/80" />
+                        <p className="text-muted-foreground max-w-sm">
+                          Para corregir la factura, haga clic en el botón para abrir el documento original en una nueva pestaña.
+                        </p>
+                        <Button
+                            type="button"
+                            onClick={() => window.open(pdfUrl, '_blank', 'noopener,noreferrer')}
+                            className="w-full"
+                        >
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            Abrir PDF en Nueva Pestaña
+                        </Button>
+                      </>
                   ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground">
-                          No se puede mostrar el PDF. URL no disponible.
+                      <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2">
+                          <AlertTriangle className="h-12 w-12 text-destructive" />
+                          <p className="font-semibold">URL del PDF no disponible</p>
+                          <p className="text-xs">No se puede mostrar el enlace al PDF.</p>
                       </div>
                   )}
               </CardContent>
