@@ -117,10 +117,10 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
   }, [filteredInvoices, sortKey, sortOrder]);
 
 
-  const handleImportToSam = () => {
-    console.log("Importar Facturas a SAM button clicked");
-    // const invoicesToImport = managedInvoices.filter(inv => inv.numero_cuenta_bancaria && inv.numero_cuenta_bancaria !== 'N/A');
-    // console.log("Invoices ready for SAM import:", invoicesToImport);
+  const handleExportToSam = () => {
+    console.log("Exportar Facturas a SAM button clicked");
+    // const invoicesToExport = managedInvoices.filter(inv => inv.numero_cuenta_bancaria && inv.numero_cuenta_bancaria !== 'N/A');
+    // console.log("Invoices ready for SAM export:", invoicesToExport);
   };
 
   const handleAccountUpdate = async (invoiceId: string, newAccountNumber: string) => {
@@ -170,7 +170,7 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
         sortKey={sortKey}
         sortOrder={sortOrder}
         onSort={handleSort}
-        onImportToSam={handleImportToSam} 
+        onExportToSam={handleExportToSam} 
       />
     </>
   );

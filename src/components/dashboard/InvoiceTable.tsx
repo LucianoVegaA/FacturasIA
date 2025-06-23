@@ -38,7 +38,7 @@ interface InvoiceTableProps {
   sortKey: keyof Invoice | null;
   sortOrder: 'asc' | 'desc' | null;
   onSort: (key: keyof Invoice) => void;
-  onImportToSam?: () => void; 
+  onExportToSam?: () => void; 
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -70,7 +70,7 @@ const SortableHeader: React.FC<{
 };
 
 
-export function InvoiceTable({ invoices, onAccountChange, sortKey, sortOrder, onSort, onImportToSam }: InvoiceTableProps) {
+export function InvoiceTable({ invoices, onAccountChange, sortKey, sortOrder, onSort, onExportToSam }: InvoiceTableProps) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
   const [pendingUpdate, setPendingUpdate] = React.useState<{ invoiceId: string; newAccountNumber: string } | null>(null);
@@ -106,10 +106,10 @@ export function InvoiceTable({ invoices, onAccountChange, sortKey, sortOrder, on
       <Card className="shadow-lg mt-6"> 
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Registros de Facturas</CardTitle>
-          {onImportToSam && (
-            <Button onClick={onImportToSam} variant="outline" size="sm">
+          {onExportToSam && (
+            <Button onClick={onExportToSam} variant="outline" size="sm">
               <Upload className="mr-2 h-4 w-4" />
-              Importar Facturas a SAM
+              Exportar Facturas a SAM
             </Button>
           )}
         </CardHeader>
