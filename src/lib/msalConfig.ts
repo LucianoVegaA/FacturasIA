@@ -22,6 +22,7 @@ export const msalConfig: Configuration = {
     clientId: finalClientId,
     authority: `https://login.microsoftonline.com/${finalTenantId}`,
     navigateToLoginRequestUrl: false, // Important for single-page applications
+    redirectUri: "/", // Set a default redirect URI. Must be registered in your Azure AD app registration.
   },
   cache: {
     cacheLocation: "sessionStorage", // "localStorage" or "sessionStorage"
