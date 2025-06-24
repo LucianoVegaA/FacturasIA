@@ -1,32 +1,46 @@
+
 "use client";
 
-import { useMsal } from "@azure/msal-react";
+import { useMsal, useIsAuthenticated as useMsalIsAuthenticated } from "@azure/msal-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { loginRequest } from "@/lib/msalConfig";
 import { Loader2 } from "lucide-react";
-import { useDemoAuth } from '@/context/DemoAuthProvider';
+import { useEffect } from "react";
+import type { AuthenticationResult } from "@azure/msal-browser";
+import { useDemoAuth } from '@/context/DemoAuthProvider'; // Added
 
 export function AzureLoginButton() {
-  const { instance, inProgress, accounts } = useMsal();
-  const { loading: demoAuthLoading } = useDemoAuth();
-  
+  const { instance, inProgress } = useMsal();
+  const msalIsAuthenticated = useMsalIsAuthenticated();
+  const { isDemoAuthenticated, loading: demoAuthLoading } = useDemoAuth(); // Added
+  const router = useRouter();
+
   const handleLogin = () => {
-    // The main guard is to check if an interaction is already in progress.
-    // The useEffect on the login page will handle redirection if the user is already authenticated.
     if (inProgress === "none") {
-      instance.loginPopup(loginRequest).catch(error => {
-        // This is a common race condition in MSAL. If an interaction is already in progress,
-        // we can safely ignore the error. The existing interaction will likely resolve,
-        // or the user has closed a popup. No action is needed.
-        if (error.errorCode === "interaction_in_progress") {
-          return;
-        }
-        
-        // Log other, unexpected errors.
-        console.error("MSAL Login Popup Error:", error);
-      });
+      instance.loginPopup(loginRequest)
+        .then((response: AuthenticationResult) => {
+          // Account is set active by MSAL, router push handled by useEffect
+        })
+        .catch(e => {
+          console.error("MSAL Login Popup Error:", e);
+        });
     }
   };
+
+  useEffect(() => {
+    // Wait for demo auth to load from storage before checking
+    if (!demoAuthLoading) {
+      if (msalIsAuthenticated || isDemoAuthenticated) {
+        router.push("/dashboard");
+      }
+    }
+  }, [msalIsAuthenticated, isDemoAuthenticated, demoAuthLoading, router]);
+
+  // Don't render the button if already authenticated by either method and not loading demo auth
+  if (!demoAuthLoading && (msalIsAuthenticated || isDemoAuthenticated)) {
+    return null; 
+  }
 
   const isLoading = inProgress !== "none";
 
@@ -34,7 +48,7 @@ export function AzureLoginButton() {
     <Button 
       onClick={handleLogin} 
       className="w-full bg-neutral-900 text-neutral-50 hover:bg-neutral-800 flex items-center justify-center space-x-2 py-3" 
-      disabled={isLoading || demoAuthLoading}
+      disabled={isLoading || demoAuthLoading} // Disable if MSAL is loading OR demo auth is loading
       size="lg"
     >
       {isLoading ? (

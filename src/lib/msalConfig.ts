@@ -1,18 +1,15 @@
 "use client";
 
-import { PublicClientApplication, LogLevel, type Configuration, type PopupRequest } from "@azure/msal-browser";
+import { PublicClientApplication, LogLevel, type Configuration, type PopupRequest, BrowserAuthOptions } from "@azure/msal-browser";
 
-const MSAL_CLIENT_ID = process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID;
-const MSAL_TENANT_ID = process.env.NEXT_PUBLIC_AZURE_AD_TENANT_ID;
-const MSAL_REDIRECT_URI = process.env.NEXT_PUBLIC_AZURE_REDIRECT_URI;
-
+const MSAL_CLIENT_ID = process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID as string;
 
 export const msalConfig: Configuration = {
   auth: {
-    clientId: MSAL_CLIENT_ID!,
-    authority: `https://login.microsoftonline.com/${MSAL_TENANT_ID}`,
+    clientId: MSAL_CLIENT_ID,
+    authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_AZURE_AD_TENANT_ID}`,
     navigateToLoginRequestUrl: false, // Important for single-page applications
-    redirectUri: MSAL_REDIRECT_URI!, // Use the configured redirect URI
+    redirectUri: process.env.NEXT_PUBLIC_AZURE_REDIRECT_URI, // Use the configured redirect URI
   },
   cache: {
     cacheLocation: "sessionStorage", // "localStorage" or "sessionStorage"
