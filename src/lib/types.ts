@@ -70,25 +70,21 @@ export interface ErrorInvoice {
 // Helper function to transform raw invoice data (with flat items) to structured Invoice type
 export function transformRawInvoice(rawData: any): Invoice {
   const items: InvoiceItemDetail[] = [];
+  // THIS IS THE FIX: The keys are in Spanish in the database (descripcion, cantidad, precio, monto)
   for (let i = 0; ; i++) {
-    const descriptionKey = `item_${i}_description`;
-    const amountKey = `item_${i}_amount`;
-    const rateKey = `item_${i}_rate`;
-    const quantityKey = `item_${i}_quantity`;
+    const descKey = `item_${i}_descripcion`;
+    const qtyKey = `item_${i}_cantidad`;
+    const rateKey = `item_${i}_precio`;
+    const amountKey = `item_${i}_monto`;
 
-    // Break if none of the keys for the current item index exist
-    if (
-      !rawData.hasOwnProperty(descriptionKey) &&
-      !rawData.hasOwnProperty(amountKey) &&
-      !rawData.hasOwnProperty(rateKey) &&
-      !rawData.hasOwnProperty(quantityKey)
-    ) {
+    // Break if the description key for the current item doesn't exist. This is the most reliable indicator.
+    if (!rawData.hasOwnProperty(descKey)) {
       break;
     }
 
     items.push({
-      description: rawData[descriptionKey] || '',
-      quantity: typeof rawData[quantityKey] === 'number' ? rawData[quantityKey] : 0,
+      description: rawData[descKey] || '',
+      quantity: typeof rawData[qtyKey] === 'number' ? rawData[qtyKey] : 0,
       rate: typeof rawData[rateKey] === 'number' ? rawData[rateKey] : 0,
       amount: typeof rawData[amountKey] === 'number' ? rawData[amountKey] : 0,
     });
