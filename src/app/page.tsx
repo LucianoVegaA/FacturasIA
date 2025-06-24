@@ -3,7 +3,8 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useIsAuthenticated as useMsalIsAuthenticated } from '@azure/msal-react';
+import { useIsAuthenticated as useMsalIsAuthenticated, useMsal } from '@azure/msal-react';
+import { InteractionStatus } from '@azure/msal-browser';
 import { AzureLoginButton } from '@/components/auth/AzureLoginButton';
 import { useDemoAuth } from '@/context/DemoAuthProvider';
 import Image from 'next/image';
@@ -20,23 +21,26 @@ const HyperNovaLabsIcon = () => (
 
 export default function LoginPage() {
   const router = useRouter();
+  const { inProgress } = useMsal();
   const msalIsAuthenticated = useMsalIsAuthenticated();
   const { isDemoAuthenticated, loginDemo, loading: demoAuthLoading } = useDemoAuth();
 
   useEffect(() => {
-    if (!demoAuthLoading) {
+    if (!demoAuthLoading && inProgress === InteractionStatus.None) {
       if (msalIsAuthenticated || isDemoAuthenticated) {
         router.push('/dashboard');
       }
     }
-  }, [msalIsAuthenticated, isDemoAuthenticated, demoAuthLoading, router]);
+  }, [msalIsAuthenticated, isDemoAuthenticated, demoAuthLoading, inProgress, router]);
 
   const handleDemoLogin = () => {
     loginDemo();
   };
 
-  if (demoAuthLoading || (!demoAuthLoading && (msalIsAuthenticated || isDemoAuthenticated))) {
-    // Show loader if demo auth is loading OR if already authenticated and redirect is in progress
+  const isAuthenticating = demoAuthLoading || inProgress !== InteractionStatus.None;
+  const isAuthenticated = msalIsAuthenticated || isDemoAuthenticated;
+
+  if (isAuthenticating || (!isAuthenticating && isAuthenticated)) {
     return (
       <div className="flex min-h-screen bg-background items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
