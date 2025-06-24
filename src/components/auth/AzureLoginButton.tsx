@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMsal, useIsAuthenticated as useMsalIsAuthenticated } from "@azure/msal-react";
@@ -18,12 +17,9 @@ export function AzureLoginButton() {
 
   const handleLogin = () => {
     if (inProgress === "none") {
-      instance.loginPopup(loginRequest)
-        .then((response: AuthenticationResult) => {
-          // Account is set active by MSAL, router push handled by useEffect
-        })
+      instance.loginRedirect(loginRequest)
         .catch(e => {
-          console.error("MSAL Login Popup Error:", e);
+          console.error("MSAL Login Redirect Error:", e);
         });
     }
   };
