@@ -2,7 +2,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -31,6 +30,7 @@ interface ErrorInvoiceDetailDialogProps {
   invoice: ErrorInvoice | null;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  onSuccess: () => void;
 }
 
 const formSchema = z.object({
@@ -47,8 +47,7 @@ const formSchema = z.object({
   numero_cuenta_bancaria: z.string(),
 });
 
-export function ErrorInvoiceDetailDialog({ invoice, isOpen, onOpenChange }: ErrorInvoiceDetailDialogProps) {
-  const router = useRouter();
+export function ErrorInvoiceDetailDialog({ invoice, isOpen, onOpenChange, onSuccess }: ErrorInvoiceDetailDialogProps) {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = React.useState(false);
   const [isProviderComboboxOpen, setIsProviderComboboxOpen] = React.useState(false);
@@ -126,7 +125,7 @@ export function ErrorInvoiceDetailDialog({ invoice, isOpen, onOpenChange }: Erro
         title: "Éxito",
         description: "La factura ha sido corregida y movida al registro principal.",
       });
-      router.refresh();
+      onSuccess();
       onOpenChange(false);
     } else {
       toast({

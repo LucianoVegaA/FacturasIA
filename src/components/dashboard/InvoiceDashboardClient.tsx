@@ -35,26 +35,26 @@ export function InvoiceDashboardClient() {
 
   const { loading: demoAuthLoading } = useDemoAuth();
 
+  const fetchData = React.useCallback(async () => {
+    setIsLoading(true);
+    const [invoices, errors] = await Promise.all([
+        getInvoices(),
+        getErrorInvoices()
+    ]);
+    
+    setManagedInvoices(invoices);
+    setErrorFiles(errors);
+    setIsLoading(false);
+  }, []);
+
   React.useEffect(() => {
     // Don't fetch until we know the auth status
     if (demoAuthLoading) {
       return;
     }
 
-    const fetchData = async () => {
-      setIsLoading(true);
-      const [invoices, errors] = await Promise.all([
-          getInvoices(),
-          getErrorInvoices()
-      ]);
-      
-      setManagedInvoices(invoices);
-      setErrorFiles(errors);
-      setIsLoading(false);
-    };
-
     fetchData();
-  }, [demoAuthLoading]);
+  }, [demoAuthLoading, fetchData]);
   
   React.useEffect(() => {
     const lowerSearchTerm = filters.searchTerm.toLowerCase();
@@ -155,16 +155,6 @@ export function InvoiceDashboardClient() {
   };
 
   const handleAccountUpdate = async (invoiceId: string, newAccountNumber: string) => {
-    // Optimistically update UI
-    const originalInvoices = [...managedInvoices];
-    setManagedInvoices(prevInvoices =>
-      prevInvoices.map(inv =>
-        inv._id === invoiceId 
-          ? { ...inv, numero_cuenta_bancaria: newAccountNumber } 
-          : inv
-      )
-    );
-    
     const result = await updateInvoiceAccountInDB(invoiceId, newAccountNumber);
 
     if (result.success) {
@@ -173,28 +163,17 @@ export function InvoiceDashboardClient() {
         description: `El número de cuenta de la factura se actualizó correctamente a ${newAccountNumber}.`,
         variant: "default", 
       });
+      fetchData();
     } else {
       toast({
         title: "Actualización Fallida",
         description: result.error || "No se pudo actualizar el número de cuenta en la base de datos. Por favor, inténtelo de nuevo.",
         variant: "destructive",
       });
-      // Revert optimistic update on failure
-       setManagedInvoices(originalInvoices);
     }
   };
 
   const handleInvoiceNumberUpdate = async (invoiceId: string, newInvoiceNumber: string) => {
-    // Optimistically update UI
-    const originalInvoices = [...managedInvoices];
-    setManagedInvoices(prevInvoices =>
-      prevInvoices.map(inv =>
-        inv._id === invoiceId 
-          ? { ...inv, invoice_number: newInvoiceNumber } 
-          : inv
-      )
-    );
-    
     const result = await updateInvoiceNumberInDB(invoiceId, newInvoiceNumber);
 
     if (result.success) {
@@ -203,14 +182,13 @@ export function InvoiceDashboardClient() {
         description: `El número de la factura se actualizó correctamente a ${newInvoiceNumber}.`,
         variant: "default", 
       });
+      fetchData();
     } else {
       toast({
         title: "Actualización Fallida",
         description: result.error || "No se pudo actualizar el número de factura. Por favor, inténtelo de nuevo.",
         variant: "destructive",
       });
-      // Revert optimistic update on failure
-       setManagedInvoices(originalInvoices);
     }
   };
 
@@ -225,7 +203,7 @@ export function InvoiceDashboardClient() {
 
   return (
     <>
-      <ErrorFileList errorFiles={errorFiles} />
+      <ErrorFileList errorFiles={errorFiles} onDataRefresh={fetchData} />
       
       <InvoiceFilter 
         filters={filters} 

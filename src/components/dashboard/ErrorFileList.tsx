@@ -11,9 +11,10 @@ import { ErrorInvoiceDetailDialog } from "./ErrorInvoiceDetailDialog";
 
 interface ErrorFileListProps {
   errorFiles: ErrorInvoice[];
+  onDataRefresh: () => void;
 }
 
-export function ErrorFileList({ errorFiles }: ErrorFileListProps) {
+export function ErrorFileList({ errorFiles, onDataRefresh }: ErrorFileListProps) {
   const [selectedInvoice, setSelectedInvoice] = React.useState<ErrorInvoice | null>(null);
 
   if (!errorFiles || errorFiles.length === 0) {
@@ -93,6 +94,7 @@ export function ErrorFileList({ errorFiles }: ErrorFileListProps) {
             setSelectedInvoice(null);
           }
         }}
+        onSuccess={onDataRefresh}
       />
     </>
   );
