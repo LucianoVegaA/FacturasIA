@@ -1,3 +1,5 @@
+"use client";
+
 import { PublicClientApplication, LogLevel, type Configuration, type PopupRequest, type RedirectRequest } from "@azure/msal-browser";
 
 const MSAL_CLIENT_ID = process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID;
