@@ -16,9 +16,7 @@ interface ErrorFileListProps {
 export function ErrorFileList({ errorFiles }: ErrorFileListProps) {
   const [selectedInvoice, setSelectedInvoice] = React.useState<ErrorInvoice | null>(null);
 
-  const filesWithNames = errorFiles.filter(file => file.file_name && file.file_name.trim() !== "");
-
-  if (!filesWithNames || filesWithNames.length === 0) {
+  if (!errorFiles || errorFiles.length === 0) {
     return null;
   }
 
@@ -34,6 +32,7 @@ export function ErrorFileList({ errorFiles }: ErrorFileListProps) {
 
   const FileItem = ({ file }: { file: ErrorInvoice }) => {
     const canDownload = !!(process.env.NEXT_PUBLIC_SHAREPOINT_ERROR_PDF_BASE_URL && file.file_name);
+    const displayName = file.file_name || `ID de Error: ${file._id.slice(-6)}`;
 
     return (
       <div
@@ -46,18 +45,18 @@ export function ErrorFileList({ errorFiles }: ErrorFileListProps) {
         <button
           onClick={() => setSelectedInvoice(file)}
           className="text-sm font-medium text-foreground truncate flex-grow text-left hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-sm"
-          aria-label={`Ver detalles de ${file.file_name}`}
+          aria-label={`Ver detalles de ${displayName}`}
         >
-          {file.file_name}
+          {displayName}
         </button>
         
         <Button
             variant="ghost"
             size="icon"
-            onClick={() => handleDownloadClick(file)}
+            onClick={(e) => { e.stopPropagation(); handleDownloadClick(file); }}
             disabled={!canDownload}
             className="ml-auto flex-shrink-0 p-1 text-primary hover:bg-accent rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label={`Descargar PDF de ${file.file_name}`}
+            aria-label={`Descargar PDF de ${file.file_name || 'archivo con error'}`}
         >
             <Download className="h-5 w-5" />
         </Button>
@@ -79,7 +78,7 @@ export function ErrorFileList({ errorFiles }: ErrorFileListProps) {
         <CardContent className="pt-2">
           <div className="relative">
             <div className="flex space-x-4 overflow-x-auto p-2 -m-2">
-              {filesWithNames.map((file) => (
+              {errorFiles.map((file) => (
                 <FileItem key={file._id} file={file} />
               ))}
             </div>
