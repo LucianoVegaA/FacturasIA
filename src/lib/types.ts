@@ -31,7 +31,7 @@ export interface Invoice {
   item_2_quantity?: number;
   item_2_rate?: number;
   item_2_amount?: number;
-  // Add more item_X_... fields if your invoices can have more than 3 items
+  // Add more item_X... fields if your invoices can have more than 3 items
 
   subtotal: number;
   discount: number;
