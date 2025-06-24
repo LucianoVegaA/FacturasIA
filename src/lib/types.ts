@@ -112,7 +112,7 @@ export function transformRawInvoice(rawData: any): Invoice {
   // Loop to catch invoices that might have the itemized structure
   for (let i = 0; ; i++) {
     const descKey = `item_${i}_descripcion`;
-    if (!rawData.hasOwnProperty(descKey)) {
+    if (!rawData.hasOwnProperty(descKey) || rawData[descKey] === null) {
       break;
     }
     items.push({
@@ -136,45 +136,45 @@ export function transformRawInvoice(rawData: any): Invoice {
       }
   } else if (typeof rawData.impuesto === 'string') {
       const impuestoStr = rawData.impuesto.toUpperCase();
-      if (impuestoStr === 'C1') taxRate = 0;
+      if (impuestoStr === 'C0' || impuestoStr === 'C1') taxRate = 0;
       else if (impuestoStr === 'C2') taxRate = 7;
       else if (impuestoStr === 'C3') taxRate = 10;
       taxAmount = subtotal * (taxRate / 100);
   }
 
   const transformed: Invoice = {
-    _id: rawData._id?.toString() || '',
-    onedrive_file_id: rawData.identificador || '',
-    file_name: rawData.file_name || null,
-    billed_to: rawData.facturado_a || "N/A",
-    invoice_number: rawData.numero_factura || "N/A",
-    date_of_issue: rawData.fecha_emision || '',
-    due_date: rawData.fecha_vencimiento || null,
-    invoice_description: rawData.descripcion || "Sin descripción",
+    _id: rawData._id?.toString() ?? '',
+    onedrive_file_id: rawData.identificador ?? '',
+    file_name: rawData.file_name ?? null,
+    billed_to: rawData.facturado_a ?? "N/A",
+    invoice_number: rawData.numero_factura ?? "N/A",
+    date_of_issue: rawData.fecha_emision ?? '',
+    due_date: rawData.fecha_vencimiento ?? null,
+    invoice_description: rawData.descripcion ?? "Sin descripción",
     items: items,
     subtotal: subtotal,
     discount: Number(rawData.descuento) || 0,
     tax: taxAmount,
     tax_rate: taxRate,
     total: total,
-    terms: rawData.terminos || null,
-    conditions_instructions: rawData.condiciones_instrucciones || null,
-    company_name: rawData.nombre_empresa || "N/A",
-    company_mobile: rawData.movil_empresa || null,
-    company_email: rawData.email_empresa || null,
-    company_website: rawData.web_empresa || null,
-    company_address: rawData.direccion_empresa || "N/A",
-    company_ruc: rawData.ruc_empresa || null,
-    recipient_name: rawData.nombre_destinatario || "N/A",
-    recipient_id: rawData.id_destinatario || null,
-    bank_account_name: rawData.nombre_cuenta_bancaria_banco || null,
-    bank_account_number: rawData.numero_cuenta_bancaria_entidad || null,
-    bank_name: rawData.nombre_banco || null,
-    numero_cuenta_bancaria: rawData.numero_cuenta_bancaria || null,
+    terms: rawData.terminos ?? null,
+    conditions_instructions: rawData.condiciones_instrucciones ?? null,
+    company_name: rawData.nombre_empresa ?? "N/A",
+    company_mobile: rawData.movil_empresa ?? null,
+    company_email: rawData.email_empresa ?? null,
+    company_website: rawData.web_empresa ?? null,
+    company_address: rawData.direccion_empresa ?? "N/A",
+    company_ruc: rawData.ruc_empresa ?? null,
+    recipient_name: rawData.nombre_destinatario ?? "N/A",
+    recipient_id: rawData.id_destinatario ?? null,
+    bank_account_name: rawData.nombre_cuenta_bancaria_banco ?? null,
+    bank_account_number: rawData.numero_cuenta_bancaria_entidad ?? null,
+    bank_name: rawData.nombre_banco ?? null,
+    numero_cuenta_bancaria: rawData.numero_cuenta_bancaria ?? null,
     staffing_percentage: Number(rawData.porcentaje_staffing) || 0,
     proyecto_percentage: Number(rawData.porcentaje_proyecto) || 0,
     software_percentage: Number(rawData.porcentaje_software) || 0,
-    pdf_url: rawData.file_url || null,
+    pdf_url: rawData.file_url ?? null,
   };
 
   // Add original item_X fields back for things like the AI summary if needed
