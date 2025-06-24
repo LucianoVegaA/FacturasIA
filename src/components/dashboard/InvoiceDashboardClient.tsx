@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Upload, ArrowUp, ArrowDown } from "lucide-react"; 
+import { Upload, ArrowUp, ArrowDown, Loader2 } from "lucide-react"; 
 import { InvoiceTable } from "@/components/dashboard/InvoiceTable";
 import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/InvoiceFilter";
 import type { Invoice, ErrorInvoice } from "@/lib/types";
@@ -10,19 +10,19 @@ import { ErrorFileList } from "@/components/dashboard/ErrorFileList";
 import { updateInvoiceAccountInDB } from "@/app/actions/updateInvoiceAccount";
 import { updateInvoiceNumberInDB } from "@/app/actions/updateInvoiceNumber";
 import { useToast } from "@/hooks/use-toast";
-
-interface InvoiceDashboardClientProps {
-  initialInvoices: Invoice[];
-  initialErrorFiles: ErrorInvoice[]; 
-  availableMonths: string[];
-}
+import { useDemoAuth } from "@/context/DemoAuthProvider";
+import { getInvoices, getErrorInvoices } from "@/app/actions/getInvoices";
+import { sampleInvoices } from "@/lib/invoiceData";
 
 type SortKey = keyof Invoice | null;
 type SortOrder = 'asc' | 'desc' | null;
 
-export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, availableMonths }: InvoiceDashboardClientProps) {
-  const [managedInvoices, setManagedInvoices] = React.useState<Invoice[]>(initialInvoices);
-  const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>(managedInvoices);
+export function InvoiceDashboardClient() {
+  const [managedInvoices, setManagedInvoices] = React.useState<Invoice[]>([]);
+  const [errorFiles, setErrorFiles] = React.useState<ErrorInvoice[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>([]);
   const [filters, setFilters] = React.useState<InvoiceFilters>({ 
     month: "all", 
     searchTerm: "",
@@ -33,9 +33,34 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
   const [sortKey, setSortKey] = React.useState<SortKey>(null);
   const [sortOrder, setSortOrder] = React.useState<SortOrder>(null);
 
+  const { isDemoAuthenticated, loading: demoAuthLoading } = useDemoAuth();
+
   React.useEffect(() => {
-    setManagedInvoices(initialInvoices);
-  }, [initialInvoices]);
+    // Don't fetch until we know the auth status
+    if (demoAuthLoading) {
+      return;
+    }
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      if (isDemoAuthenticated) {
+        // Use mock data for demo mode
+        setManagedInvoices(sampleInvoices);
+        setErrorFiles([]); // No sample error files for now
+      } else {
+        // Fetch real data for authenticated users
+        const [invoices, errors] = await Promise.all([
+            getInvoices(),
+            getErrorInvoices()
+        ]);
+        setManagedInvoices(invoices);
+        setErrorFiles(errors);
+      }
+      setIsLoading(false);
+    };
+
+    fetchData();
+  }, [isDemoAuthenticated, demoAuthLoading]);
   
   React.useEffect(() => {
     const lowerSearchTerm = filters.searchTerm.toLowerCase();
@@ -57,6 +82,16 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
     setFilteredInvoices(newFilteredInvoices);
 
   }, [filters, managedInvoices]);
+
+  const availableMonths = React.useMemo(() => {
+    const monthsSet = new Set<string>();
+    managedInvoices.forEach(inv => {
+      if (inv.date_of_issue) { 
+        monthsSet.add(inv.date_of_issue.substring(0, 7)); 
+      }
+    });
+    return Array.from(monthsSet).sort((a, b) => b.localeCompare(a));
+  }, [managedInvoices]);
 
   const availableAccountNumbers = React.useMemo(() => {
     const accountNumbers = new Set<string>();
@@ -185,9 +220,18 @@ export function InvoiceDashboardClient({ initialInvoices, initialErrorFiles, ava
     }
   };
 
+  if (isLoading || demoAuthLoading) {
+    return (
+      <div className="flex w-full flex-col items-center justify-center pt-20">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Cargando facturas...</p>
+      </div>
+    );
+  }
+
   return (
     <>
-      <ErrorFileList errorFiles={initialErrorFiles} />
+      <ErrorFileList errorFiles={errorFiles} />
       
       <InvoiceFilter 
         filters={filters} 
