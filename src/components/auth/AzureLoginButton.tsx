@@ -14,10 +14,16 @@ export function AzureLoginButton() {
     // The main guard is to check if an interaction is already in progress.
     // The useEffect on the login page will handle redirection if the user is already authenticated.
     if (inProgress === "none") {
-      instance.loginPopup(loginRequest).catch(e => {
-        // The logger in msalConfig is configured to handle most verbose errors.
-        // We log here only if the promise itself rejects with an unexpected error.
-        console.error("MSAL Login Popup Error:", e);
+      instance.loginPopup(loginRequest).catch(error => {
+        // This is a common race condition in MSAL. If an interaction is already in progress,
+        // we can safely ignore the error. The existing interaction will likely resolve,
+        // or the user has closed a popup. No action is needed.
+        if (error.errorCode === "interaction_in_progress") {
+          return;
+        }
+        
+        // Log other, unexpected errors.
+        console.error("MSAL Login Popup Error:", error);
       });
     }
   };
