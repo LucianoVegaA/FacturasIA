@@ -22,17 +22,17 @@ export function ErrorFileList({ errorFiles, onDataRefresh }: ErrorFileListProps)
   }
 
   const handleDownloadClick = (file: ErrorInvoice) => {
-    const baseUrl = process.env.NEXT_PUBLIC_SHAREPOINT_ERROR_PDF_BASE_URL;
-    if (baseUrl && file.file_name) {
+    const baseUrl = "https://newhnl-my.sharepoint.com/personal/lvega_hypernovalabs_com/Documents/Facturas_Con_Errorr";
+    if (file.file_name) {
       const pdfUrl = `${baseUrl}/${file.file_name}`;
       window.open(pdfUrl, '_blank', 'noopener,noreferrer');
     } else {
-      console.error("La URL base para los archivos con error o el nombre del archivo no están disponibles.");
+      console.error("El nombre del archivo no está disponible para este archivo con error.");
     }
   };
 
   const FileItem = ({ file }: { file: ErrorInvoice }) => {
-    const canDownload = !!(process.env.NEXT_PUBLIC_SHAREPOINT_ERROR_PDF_BASE_URL && file.file_name);
+    const canDownload = !!file.file_name;
     const displayName = file.file_name || `ID de Error: ${file._id.slice(-6)}`;
 
     return (

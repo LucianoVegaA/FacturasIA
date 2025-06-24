@@ -150,8 +150,8 @@ export function ErrorInvoiceDetailDialog({ invoice, isOpen, onOpenChange, onSucc
     }
   };
 
-  const pdfUrl = process.env.NEXT_PUBLIC_SHAREPOINT_ERROR_PDF_BASE_URL && invoice.file_name
-    ? `${process.env.NEXT_PUBLIC_SHAREPOINT_ERROR_PDF_BASE_URL}/${invoice.file_name}`
+  const pdfUrl = invoice.file_name
+    ? `https://newhnl-my.sharepoint.com/personal/lvega_hypernovalabs_com/Documents/Facturas_Con_Errorr/${invoice.file_name}`
     : null;
 
   return (
