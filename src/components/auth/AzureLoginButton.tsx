@@ -12,8 +12,8 @@ export function AzureLoginButton() {
   
   const handleLogin = () => {
     if (inProgress === "none") {
-      instance.loginRedirect(loginRequest).catch(e => {
-        console.error("MSAL Login Redirect Error:", e);
+      instance.loginPopup(loginRequest).catch(e => {
+        console.error("MSAL Login Popup Error:", e);
       });
     }
   };
