@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Upload, ArrowUp, ArrowDown, Loader2 } from "lucide-react"; 
+import { Upload, ArrowUp, ArrowDown, Loader2, AlertTriangle } from "lucide-react"; 
 import { InvoiceTable } from "@/components/dashboard/InvoiceTable";
 import { InvoiceFilter, type InvoiceFilters } from "@/components/dashboard/InvoiceFilter";
 import type { Invoice, ErrorInvoice } from "@/lib/types";
@@ -12,6 +12,7 @@ import { updateInvoiceNumberInDB } from "@/app/actions/updateInvoiceNumber";
 import { useToast } from "@/hooks/use-toast";
 import { useDemoAuth } from "@/context/DemoAuthProvider";
 import { getInvoices, getErrorInvoices } from "@/app/actions/getInvoices";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SortKey = keyof Invoice | null;
 type SortOrder = 'asc' | 'desc' | null;
@@ -20,6 +21,7 @@ export function InvoiceDashboardClient() {
   const [managedInvoices, setManagedInvoices] = React.useState<Invoice[]>([]);
   const [errorFiles, setErrorFiles] = React.useState<ErrorInvoice[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [fetchError, setFetchError] = React.useState<string | null>(null);
 
   const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>([]);
   const [filters, setFilters] = React.useState<InvoiceFilters>({ 
@@ -42,13 +44,19 @@ export function InvoiceDashboardClient() {
 
     const fetchData = async () => {
       setIsLoading(true);
+      setFetchError(null);
       // Fetch real data regardless of auth mode (demo or Azure)
-      const [invoices, errors] = await Promise.all([
+      const [invoicesResult, errorsResult] = await Promise.all([
           getInvoices(),
           getErrorInvoices()
       ]);
-      setManagedInvoices(invoices);
-      setErrorFiles(errors);
+      
+      if (invoicesResult.error || errorsResult.error) {
+          setFetchError(invoicesResult.error || errorsResult.error);
+      } else {
+          setManagedInvoices(invoicesResult.invoices);
+          setErrorFiles(errorsResult.errorInvoices);
+      }
       setIsLoading(false);
     };
 
@@ -219,6 +227,28 @@ export function InvoiceDashboardClient() {
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <p className="mt-4 text-muted-foreground">Cargando facturas...</p>
       </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <Card className="m-auto mt-20 max-w-lg border-destructive">
+        <CardHeader>
+          <CardTitle className="flex items-center text-destructive">
+            <AlertTriangle className="mr-2 h-5 w-5" />
+            Error de Conexión
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>No se pudieron cargar los datos de las facturas.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            <strong>Detalle:</strong> {fetchError}
+          </p>
+           <p className="mt-4 text-sm font-semibold">
+            Por favor, asegúrese de que su archivo `.env` esté configurado correctamente con las variables `MONGODB_URI` y `MONGODB_DB_NAME`.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
