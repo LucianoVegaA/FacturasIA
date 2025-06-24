@@ -94,29 +94,40 @@ export function transformRawInvoice(rawData: any): Invoice {
     });
   }
   
-  // Consolidate all mapping logic here.
-  const subtotal = typeof (rawData.subtotal) === 'number' ? rawData.subtotal : 0;
+  const subtotal = typeof rawData.subtotal === 'number' ? rawData.subtotal : 0;
+  const total = typeof rawData.total === 'number' ? rawData.total : 0;
   
   let taxAmount = 0;
   let taxRate = 0;
 
-  // If `tax` field (amount) exists, use it. This is for data that already has the amount.
-  if (typeof rawData.tax === 'number') {
-    taxAmount = rawData.tax;
-     if (subtotal > 0) {
-      taxRate = (taxAmount / subtotal) * 100;
-    }
-  }
-  // Else if `impuesto` (rate) exists, calculate tax amount from it. For newly corrected invoices.
-  else if (typeof rawData.impuesto === 'number') {
-    taxRate = rawData.impuesto;
-    taxAmount = subtotal * (taxRate / 100);
-  } else if (typeof rawData.impuesto === 'string') { // Legacy handling for string rates
-    const parsedRate = parseFloat(rawData.impuesto);
-    if (!isNaN(parsedRate)) {
-      taxRate = parsedRate;
+  // New robust tax calculation logic
+  // First, try to derive from total and subtotal, as this is the most reliable
+  if (total > 0 && subtotal > 0 && total >= subtotal) {
+      taxAmount = total - subtotal;
+      // prevent division by zero
+      if (subtotal > 0) {
+        taxRate = (taxAmount / subtotal) * 100;
+      }
+  } 
+  // Fallback to 'impuesto' field if total/subtotal are not reliable
+  else if (typeof rawData.impuesto === 'string') {
+      const impuestoStr = rawData.impuesto.toUpperCase();
+      if (impuestoStr === 'C1') {
+          taxRate = 0;
+      } else if (impuestoStr === 'C2') {
+          taxRate = 7;
+      } else if (impuestoStr === 'C3') {
+          taxRate = 10;
+      }
       taxAmount = subtotal * (taxRate / 100);
-    }
+  } else if (typeof rawData.impuesto === 'number') { // For corrected invoices
+      taxRate = rawData.impuesto;
+      taxAmount = subtotal * (taxRate / 100);
+  } else if (typeof rawData.tax === 'number') { // For legacy data with 'tax' amount
+      taxAmount = rawData.tax;
+      if (subtotal > 0) {
+        taxRate = (taxAmount / subtotal) * 100;
+      }
   }
 
 
@@ -134,7 +145,7 @@ export function transformRawInvoice(rawData: any): Invoice {
     discount: typeof (rawData.descuento || rawData.discount) === 'number' ? (rawData.descuento || rawData.discount) : 0,
     tax: taxAmount,
     tax_rate: taxRate,
-    total: typeof (rawData.total) === 'number' ? rawData.total : 0,
+    total: total,
     terms: rawData.terminos || rawData.terms || null,
     conditions_instructions: rawData.condiciones_instrucciones || rawData.conditions_instructions || null,
     company_name: rawData.nombre_empresa || rawData.company_name || "Default Company Inc.",
@@ -142,16 +153,16 @@ export function transformRawInvoice(rawData: any): Invoice {
     company_email: rawData.email_empresa || rawData.company_email || null,
     company_website: rawData.web_empresa || rawData.company_website || null,
     company_address: rawData.direccion_empresa || rawData.company_address || "123 Default St",
-    company_ruc: rawData.ruc_empresa || rawData.company_ruc || null,
+    company_ruc: rawData.ruc_empresa || rawData.ruc_empresa || null,
     recipient_name: rawData.nombre_destinatario || rawData.recipient_name || "Valued Customer",
     recipient_id: rawData.id_destinatario || rawData.recipient_id || null,
     bank_account_name: rawData.nombre_cuenta_bancaria_banco || rawData.bank_account_name || null,
     bank_account_number: rawData.numero_cuenta_bancaria_entidad || rawData.bank_account_number || null,
     bank_name: rawData.nombre_banco || rawData.bank_name || null,
     numero_cuenta_bancaria: rawData.numero_cuenta_bancaria || null,
-    staffing_percentage: typeof (rawData.porcentaje_staffing ?? rawData.staffing_percentage) === 'number' ? (rawData.porcentaje_staffing ?? rawData.staffing_percentage) : 0,
-    proyecto_percentage: typeof (rawData.porcentaje_proyecto ?? rawData.proyecto_percentage) === 'number' ? (rawData.porcentaje_proyecto ?? rawData.proyecto_percentage) : 0,
-    software_percentage: typeof (rawData.porcentaje_software ?? rawData.software_percentage) === 'number' ? (rawData.porcentaje_software ?? rawData.software_percentage) : 0,
+    staffing_percentage: typeof (rawData.porcentaje_staffing) === 'number' ? rawData.porcentaje_staffing : 0,
+    proyecto_percentage: typeof (rawData.porcentaje_proyecto) === 'number' ? rawData.porcentaje_proyecto : 0,
+    software_percentage: typeof (rawData.porcentaje_software) === 'number' ? rawData.porcentaje_software : 0,
     pdf_url: rawData.file_url || rawData.pdf_url || null, // Correctly maps file_url to pdf_url
   };
 
