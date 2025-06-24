@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { format } from "date-fns";
+import { format, addMonths } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar as CalendarIcon, AlertCircle, Loader2, Save, ExternalLink, AlertTriangle, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -106,10 +106,13 @@ export function ErrorInvoiceDetailDialog({ invoice, isOpen, onOpenChange }: Erro
 
     const total = calculatedTotal;
     const taxAmount = values.subtotal * (values.impuesto / 100);
+    const issueDate = values.fecha_emision;
+    const dueDate = addMonths(issueDate, 1);
 
     const correctedData = {
       ...values,
-      fecha_emision: format(values.fecha_emision, 'yyyy-MM-dd'),
+      fecha_emision: format(issueDate, 'yyyy-MM-dd'),
+      fecha_vencimiento: format(dueDate, 'yyyy-MM-dd'),
       total,
       subtotal: values.subtotal,
       impuesto: values.impuesto, // Keep rate for reference
