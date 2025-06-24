@@ -12,7 +12,6 @@ import { updateInvoiceNumberInDB } from "@/app/actions/updateInvoiceNumber";
 import { useToast } from "@/hooks/use-toast";
 import { useDemoAuth } from "@/context/DemoAuthProvider";
 import { getInvoices, getErrorInvoices } from "@/app/actions/getInvoices";
-import { sampleInvoices } from "@/lib/invoiceData";
 
 type SortKey = keyof Invoice | null;
 type SortOrder = 'asc' | 'desc' | null;
@@ -33,7 +32,7 @@ export function InvoiceDashboardClient() {
   const [sortKey, setSortKey] = React.useState<SortKey>(null);
   const [sortOrder, setSortOrder] = React.useState<SortOrder>(null);
 
-  const { isDemoAuthenticated, loading: demoAuthLoading } = useDemoAuth();
+  const { loading: demoAuthLoading } = useDemoAuth();
 
   React.useEffect(() => {
     // Don't fetch until we know the auth status
@@ -43,24 +42,18 @@ export function InvoiceDashboardClient() {
 
     const fetchData = async () => {
       setIsLoading(true);
-      if (isDemoAuthenticated) {
-        // Use mock data for demo mode
-        setManagedInvoices(sampleInvoices);
-        setErrorFiles([]); // No sample error files for now
-      } else {
-        // Fetch real data for authenticated users
-        const [invoices, errors] = await Promise.all([
-            getInvoices(),
-            getErrorInvoices()
-        ]);
-        setManagedInvoices(invoices);
-        setErrorFiles(errors);
-      }
+      // Fetch real data regardless of auth mode (demo or Azure)
+      const [invoices, errors] = await Promise.all([
+          getInvoices(),
+          getErrorInvoices()
+      ]);
+      setManagedInvoices(invoices);
+      setErrorFiles(errors);
       setIsLoading(false);
     };
 
     fetchData();
-  }, [isDemoAuthenticated, demoAuthLoading]);
+  }, [demoAuthLoading]);
   
   React.useEffect(() => {
     const lowerSearchTerm = filters.searchTerm.toLowerCase();
