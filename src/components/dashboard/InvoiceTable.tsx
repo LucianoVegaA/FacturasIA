@@ -168,12 +168,12 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
   };
   
   const handleViewPdfClick = (invoice: Invoice) => {
-    const baseUrl = process.env.NEXT_PUBLIC_SHAREPOINT_PDF_BASE_URL;
-    if (!baseUrl || !invoice.file_name) {
-      console.error("La URL base de SharePoint o el nombre del archivo no están disponibles.");
+    const baseUrl = "https://newhnl-my.sharepoint.com/personal/lvega_hypernovalabs_com/Documents/Facturas_Procesadas/";
+    if (!invoice.file_name) {
+      console.error("El nombre del archivo no está disponible.");
       return;
     }
-    const pdfUrl = `${baseUrl}/${invoice.file_name}`;
+    const pdfUrl = `${baseUrl}${invoice.file_name}`;
     window.open(pdfUrl, '_blank', 'noopener,noreferrer');
   };
 
@@ -263,7 +263,7 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
                               e.stopPropagation();
                               handleViewPdfClick(invoice);
                             }}
-                            disabled={!invoice.file_name || !process.env.NEXT_PUBLIC_SHAREPOINT_PDF_BASE_URL}
+                            disabled={!invoice.file_name}
                           >
                           <Eye className="mr-2 h-4 w-4" />
                           Ver PDF
