@@ -16,7 +16,7 @@ export async function updateInvoiceAccountInDB(invoiceId: string, newAccountNumb
 
   try {
     const { db } = await connectToDatabase();
-    const invoicesCollection = db.collection('datos');
+    const invoicesCollection = db.collection('Datos');
 
     const result = await invoicesCollection.updateOne(
       { _id: new ObjectId(invoiceId) },
