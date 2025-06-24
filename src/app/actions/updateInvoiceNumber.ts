@@ -15,7 +15,7 @@ export async function updateInvoiceNumberInDB(invoiceId: string, newInvoiceNumbe
 
   try {
     const { db } = await connectToDatabase();
-    const invoicesCollection = db.collection('Datos');
+    const invoicesCollection = db.collection('datos');
 
     // The field in MongoDB is 'numero_factura'
     const result = await invoicesCollection.updateOne(
