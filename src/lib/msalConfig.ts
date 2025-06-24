@@ -1,6 +1,6 @@
 "use client";
 
-import { PublicClientApplication, LogLevel, type Configuration, type PopupRequest, type RedirectRequest } from "@azure/msal-browser";
+import { PublicClientApplication, LogLevel, type Configuration, type PopupRequest } from "@azure/msal-browser";
 
 const MSAL_CLIENT_ID = process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID;
 const MSAL_TENANT_ID = process.env.NEXT_PUBLIC_AZURE_AD_TENANT_ID;
@@ -24,6 +24,10 @@ export const msalConfig: Configuration = {
         }
         switch (level) {
           case LogLevel.Error:
+            // Suppress the "window closed" error as it's a user action, not a system error.
+            if (message.includes("PopupHandler.monitorPopupForHash - window closed")) {
+              return;
+            }
             console.error(message);
             return;
           case LogLevel.Info:
@@ -48,7 +52,7 @@ export const msalConfig: Configuration = {
 export const msalInstance = new PublicClientApplication(msalConfig);
 
 // Define scopes for login request
-export const loginRequest: PopupRequest | RedirectRequest = {
+export const loginRequest: PopupRequest = {
   scopes: ["User.Read", "openid", "profile", "email"], // Basic scopes
 };
 
