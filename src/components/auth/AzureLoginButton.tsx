@@ -7,12 +7,16 @@ import { Loader2 } from "lucide-react";
 import { useDemoAuth } from '@/context/DemoAuthProvider';
 
 export function AzureLoginButton() {
-  const { instance, inProgress } = useMsal();
+  const { instance, inProgress, accounts } = useMsal();
   const { loading: demoAuthLoading } = useDemoAuth();
   
   const handleLogin = () => {
-    if (inProgress === "none") {
+    // Strengthen the guard to prevent initiating a login if one is already in progress
+    // or if a user account is already present. This prevents race conditions.
+    if (inProgress === "none" && accounts.length === 0) {
       instance.loginPopup(loginRequest).catch(e => {
+        // The logger in msalConfig is configured to handle most verbose errors.
+        // We log here only if the promise itself rejects with an unexpected error.
         console.error("MSAL Login Popup Error:", e);
       });
     }
