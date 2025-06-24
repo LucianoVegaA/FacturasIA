@@ -1,3 +1,4 @@
+
 export interface InvoiceItemDetail {
   description: string;
   quantity: number;
@@ -94,7 +95,7 @@ export function transformRawInvoice(rawData: any): Invoice {
   }
   
   // Consolidate all mapping logic here.
-  const subtotal = typeof rawData.subtotal === 'number' ? rawData.subtotal : 0;
+  const subtotal = typeof (rawData.subtotal) === 'number' ? rawData.subtotal : 0;
   
   let taxAmount = 0;
   let taxRate = 0;
@@ -121,37 +122,37 @@ export function transformRawInvoice(rawData: any): Invoice {
 
   const transformed: Invoice = {
     _id: rawData._id?.toString(),
-    onedrive_file_id: rawData.identificador || `fallback_id_${rawData._id?.toString()}`,
+    onedrive_file_id: rawData.identificador || rawData.onedrive_file_id || `fallback_id_${rawData._id?.toString()}`,
     file_name: rawData.file_name || null,
-    billed_to: rawData.facturado_a || "N/A",
-    invoice_number: rawData.numero_factura || "N/A",
-    date_of_issue: rawData.fecha_emision || new Date().toISOString().split('T')[0],
-    due_date: rawData.fecha_vencimiento || null,
-    invoice_description: rawData.descripcion || "No description",
+    billed_to: rawData.facturado_a || rawData.billed_to || "N/A",
+    invoice_number: rawData.numero_factura || rawData.invoice_number || "N/A",
+    date_of_issue: rawData.fecha_emision || rawData.date_of_issue || new Date().toISOString().split('T')[0],
+    due_date: rawData.fecha_vencimiento || rawData.due_date || null,
+    invoice_description: rawData.descripcion || rawData.invoice_description || "No description",
     items,
     subtotal: subtotal,
-    discount: typeof rawData.descuento === 'number' ? rawData.descuento : 0,
+    discount: typeof (rawData.descuento || rawData.discount) === 'number' ? (rawData.descuento || rawData.discount) : 0,
     tax: taxAmount,
     tax_rate: taxRate,
-    total: typeof rawData.total === 'number' ? rawData.total : 0,
-    terms: rawData.terminos || null,
-    conditions_instructions: rawData.condiciones_instrucciones || null,
-    company_name: rawData.nombre_empresa || "Default Company Inc.",
-    company_mobile: rawData.movil_empresa || null,
-    company_email: rawData.email_empresa || null,
-    company_website: rawData.web_empresa || null,
-    company_address: rawData.direccion_empresa || "123 Default St",
-    company_ruc: rawData.ruc_empresa || null,
-    recipient_name: rawData.nombre_destinatario || "Valued Customer",
-    recipient_id: rawData.id_destinatario || null,
-    bank_account_name: rawData.nombre_cuenta_bancaria_banco || null,
-    bank_account_number: rawData.numero_cuenta_bancaria_entidad || null,
-    bank_name: rawData.nombre_banco || null,
+    total: typeof (rawData.total) === 'number' ? rawData.total : 0,
+    terms: rawData.terminos || rawData.terms || null,
+    conditions_instructions: rawData.condiciones_instrucciones || rawData.conditions_instructions || null,
+    company_name: rawData.nombre_empresa || rawData.company_name || "Default Company Inc.",
+    company_mobile: rawData.movil_empresa || rawData.company_mobile || null,
+    company_email: rawData.email_empresa || rawData.company_email || null,
+    company_website: rawData.web_empresa || rawData.company_website || null,
+    company_address: rawData.direccion_empresa || rawData.company_address || "123 Default St",
+    company_ruc: rawData.ruc_empresa || rawData.company_ruc || null,
+    recipient_name: rawData.nombre_destinatario || rawData.recipient_name || "Valued Customer",
+    recipient_id: rawData.id_destinatario || rawData.recipient_id || null,
+    bank_account_name: rawData.nombre_cuenta_bancaria_banco || rawData.bank_account_name || null,
+    bank_account_number: rawData.numero_cuenta_bancaria_entidad || rawData.bank_account_number || null,
+    bank_name: rawData.nombre_banco || rawData.bank_name || null,
     numero_cuenta_bancaria: rawData.numero_cuenta_bancaria || null,
-    staffing_percentage: typeof rawData.porcentaje_staffing === 'number' ? rawData.porcentaje_staffing : 0,
-    proyecto_percentage: typeof rawData.porcentaje_proyecto === 'number' ? rawData.porcentaje_proyecto : 0,
-    software_percentage: typeof rawData.porcentaje_software === 'number' ? rawData.porcentaje_software : 0,
-    pdf_url: rawData.file_url || null, // Correctly maps file_url to pdf_url
+    staffing_percentage: typeof (rawData.porcentaje_staffing ?? rawData.staffing_percentage) === 'number' ? (rawData.porcentaje_staffing ?? rawData.staffing_percentage) : 0,
+    proyecto_percentage: typeof (rawData.porcentaje_proyecto ?? rawData.proyecto_percentage) === 'number' ? (rawData.porcentaje_proyecto ?? rawData.proyecto_percentage) : 0,
+    software_percentage: typeof (rawData.porcentaje_software ?? rawData.software_percentage) === 'number' ? (rawData.porcentaje_software ?? rawData.software_percentage) : 0,
+    pdf_url: rawData.file_url || rawData.pdf_url || null, // Correctly maps file_url to pdf_url
   };
 
   // Add original item_X fields back for things like the AI summary if needed
