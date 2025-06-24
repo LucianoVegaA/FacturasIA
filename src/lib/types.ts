@@ -69,97 +69,112 @@ export interface ErrorInvoice {
 
 // Helper function to transform raw invoice data (with flat items) to structured Invoice type
 export function transformRawInvoice(rawData: any): Invoice {
+  if (!rawData || typeof rawData !== 'object') {
+    console.warn("transformRawInvoice received invalid data:", rawData);
+    // Return a default empty structure to avoid breaking the map function
+    return {
+      _id: '',
+      onedrive_file_id: '',
+      file_name: null,
+      billed_to: "Invalid Data",
+      invoice_number: "N/A",
+      date_of_issue: '',
+      due_date: null,
+      invoice_description: "Invalid Data",
+      items: [],
+      subtotal: 0,
+      discount: 0,
+      tax: 0,
+      tax_rate: 0,
+      total: 0,
+      terms: null,
+      conditions_instructions: null,
+      company_name: "N/A",
+      company_mobile: null,
+      company_email: null,
+      company_website: null,
+      company_address: "N/A",
+      company_ruc: null,
+      recipient_name: "N/A",
+      recipient_id: null,
+      bank_account_name: null,
+      bank_account_number: null,
+      bank_name: null,
+      numero_cuenta_bancaria: null,
+      staffing_percentage: 0,
+      proyecto_percentage: 0,
+      software_percentage: 0,
+      pdf_url: null,
+    };
+  }
+
   const items: InvoiceItemDetail[] = [];
-  // THIS IS THE FIX: The keys are in Spanish in the database (descripcion, cantidad, precio, monto)
+  // Loop to catch invoices that might have the itemized structure
   for (let i = 0; ; i++) {
     const descKey = `item_${i}_descripcion`;
-    const qtyKey = `item_${i}_cantidad`;
-    const rateKey = `item_${i}_precio`;
-    const amountKey = `item_${i}_monto`;
-
-    // Break if the description key for the current item doesn't exist. This is the most reliable indicator.
     if (!rawData.hasOwnProperty(descKey)) {
       break;
     }
-
     items.push({
       description: rawData[descKey] || '',
-      quantity: typeof rawData[qtyKey] === 'number' ? rawData[qtyKey] : 0,
-      rate: typeof rawData[rateKey] === 'number' ? rawData[rateKey] : 0,
-      amount: typeof rawData[amountKey] === 'number' ? rawData[amountKey] : 0,
+      quantity: rawData[`item_${i}_cantidad`] || 0,
+      rate: rawData[`item_${i}_precio`] || 0,
+      amount: rawData[`item_${i}_monto`] || 0,
     });
   }
   
-  const subtotal = typeof rawData.subtotal === 'number' ? rawData.subtotal : 0;
-  const total = typeof rawData.total === 'number' ? rawData.total : 0;
-  
+  const subtotal = Number(rawData.subtotal) || 0;
+  const total = Number(rawData.total) || 0;
   let taxAmount = 0;
   let taxRate = 0;
 
   // New robust tax calculation logic
-  // First, try to derive from total and subtotal, as this is the most reliable
   if (total > 0 && subtotal > 0 && total >= subtotal) {
       taxAmount = total - subtotal;
-      // prevent division by zero
       if (subtotal > 0) {
         taxRate = (taxAmount / subtotal) * 100;
       }
-  } 
-  // Fallback to 'impuesto' field if total/subtotal are not reliable
-  else if (typeof rawData.impuesto === 'string') {
+  } else if (typeof rawData.impuesto === 'string') {
       const impuestoStr = rawData.impuesto.toUpperCase();
-      if (impuestoStr === 'C1') {
-          taxRate = 0;
-      } else if (impuestoStr === 'C2') {
-          taxRate = 7;
-      } else if (impuestoStr === 'C3') {
-          taxRate = 10;
-      }
+      if (impuestoStr === 'C1') taxRate = 0;
+      else if (impuestoStr === 'C2') taxRate = 7;
+      else if (impuestoStr === 'C3') taxRate = 10;
       taxAmount = subtotal * (taxRate / 100);
-  } else if (typeof rawData.impuesto === 'number') { // For corrected invoices
-      taxRate = rawData.impuesto;
-      taxAmount = subtotal * (taxRate / 100);
-  } else if (typeof rawData.tax === 'number') { // For legacy data with 'tax' amount
-      taxAmount = rawData.tax;
-      if (subtotal > 0) {
-        taxRate = (taxAmount / subtotal) * 100;
-      }
   }
 
-
   const transformed: Invoice = {
-    _id: rawData._id?.toString(),
-    onedrive_file_id: rawData.identificador || rawData.onedrive_file_id || `fallback_id_${rawData._id?.toString()}`,
+    _id: rawData._id?.toString() || '',
+    onedrive_file_id: rawData.identificador || '',
     file_name: rawData.file_name || null,
-    billed_to: rawData.facturado_a || rawData.billed_to || "N/A",
-    invoice_number: rawData.numero_factura || rawData.invoice_number || "N/A",
-    date_of_issue: rawData.fecha_emision || rawData.date_of_issue || new Date().toISOString().split('T')[0],
-    due_date: rawData.fecha_vencimiento || rawData.due_date || null,
-    invoice_description: rawData.descripcion || rawData.invoice_description || "No description",
-    items,
+    billed_to: rawData.facturado_a || "N/A",
+    invoice_number: rawData.numero_factura || "N/A",
+    date_of_issue: rawData.fecha_emision || '',
+    due_date: rawData.fecha_vencimiento || null,
+    invoice_description: rawData.descripcion || "Sin descripción",
+    items: items,
     subtotal: subtotal,
-    discount: typeof (rawData.descuento || rawData.discount) === 'number' ? (rawData.descuento || rawData.discount) : 0,
+    discount: Number(rawData.descuento) || 0,
     tax: taxAmount,
     tax_rate: taxRate,
     total: total,
-    terms: rawData.terminos || rawData.terms || null,
-    conditions_instructions: rawData.condiciones_instrucciones || rawData.conditions_instructions || null,
-    company_name: rawData.nombre_empresa || rawData.company_name || "Default Company Inc.",
-    company_mobile: rawData.movil_empresa || rawData.company_mobile || null,
-    company_email: rawData.email_empresa || rawData.company_email || null,
-    company_website: rawData.web_empresa || rawData.company_website || null,
-    company_address: rawData.direccion_empresa || rawData.company_address || "123 Default St",
-    company_ruc: rawData.ruc_empresa || rawData.ruc_empresa || null,
-    recipient_name: rawData.nombre_destinatario || rawData.recipient_name || "Valued Customer",
-    recipient_id: rawData.id_destinatario || rawData.recipient_id || null,
-    bank_account_name: rawData.nombre_cuenta_bancaria_banco || rawData.bank_account_name || null,
-    bank_account_number: rawData.numero_cuenta_bancaria_entidad || rawData.bank_account_number || null,
-    bank_name: rawData.nombre_banco || rawData.bank_name || null,
+    terms: rawData.terminos || null,
+    conditions_instructions: rawData.condiciones_instrucciones || null,
+    company_name: rawData.nombre_empresa || "N/A",
+    company_mobile: rawData.movil_empresa || null,
+    company_email: rawData.email_empresa || null,
+    company_website: rawData.web_empresa || null,
+    company_address: rawData.direccion_empresa || "N/A",
+    company_ruc: rawData.ruc_empresa || null,
+    recipient_name: rawData.nombre_destinatario || "N/A",
+    recipient_id: rawData.id_destinatario || null,
+    bank_account_name: rawData.nombre_cuenta_bancaria_banco || null,
+    bank_account_number: rawData.numero_cuenta_bancaria_entidad || null,
+    bank_name: rawData.nombre_banco || null,
     numero_cuenta_bancaria: rawData.numero_cuenta_bancaria || null,
-    staffing_percentage: typeof (rawData.porcentaje_staffing) === 'number' ? rawData.porcentaje_staffing : 0,
-    proyecto_percentage: typeof (rawData.porcentaje_proyecto) === 'number' ? rawData.porcentaje_proyecto : 0,
-    software_percentage: typeof (rawData.porcentaje_software) === 'number' ? rawData.porcentaje_software : 0,
-    pdf_url: rawData.file_url || rawData.pdf_url || null, // Correctly maps file_url to pdf_url
+    staffing_percentage: Number(rawData.porcentaje_staffing) || 0,
+    proyecto_percentage: Number(rawData.porcentaje_proyecto) || 0,
+    software_percentage: Number(rawData.porcentaje_software) || 0,
+    pdf_url: rawData.file_url || null,
   };
 
   // Add original item_X fields back for things like the AI summary if needed
