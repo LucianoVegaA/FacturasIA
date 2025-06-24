@@ -1,3 +1,4 @@
+
 'use server';
 
 import { connectToDatabase } from '@/lib/mongodb';
@@ -21,8 +22,8 @@ export async function correctAndMoveInvoice(
 
   try {
     const { db } = await connectToDatabase();
-    const errorInvoicesCollection = db.collection('Facturas con Error');
-    const datosCollection = db.collection('Datos');
+    const errorInvoicesCollection = db.collection('factura_con_error');
+    const datosCollection = db.collection('datos');
 
     // Prepare the new document for the 'datos' collection.
     // The correctedData from the form will overwrite any corresponding fields in the original raw data.

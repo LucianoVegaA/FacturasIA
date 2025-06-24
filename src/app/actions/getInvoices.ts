@@ -1,3 +1,4 @@
+
 'use server';
 
 import { connectToDatabase } from '@/lib/mongodb';
@@ -8,7 +9,7 @@ import type { Document } from 'mongodb';
 export async function getInvoices(): Promise<Invoice[]> {
   try {
     const { db } = await connectToDatabase();
-    const invoicesCollection = db.collection<Document>("Datos"); 
+    const invoicesCollection = db.collection<Document>("datos"); 
     const rawInvoices = await invoicesCollection.find({}).sort({ fecha_emision: -1 }).toArray(); 
     
     return rawInvoices.map(transformRawInvoice);
@@ -21,7 +22,7 @@ export async function getInvoices(): Promise<Invoice[]> {
 export async function getErrorInvoices(): Promise<ErrorInvoice[]> {
   try {
     const { db } = await connectToDatabase();
-    const errorFilesCollection = db.collection<Document>("Facturas con Error");
+    const errorFilesCollection = db.collection<Document>("factura_con_error");
     const rawErrorFiles = await errorFilesCollection.find({}).toArray();
 
     return rawErrorFiles.map(doc => {
