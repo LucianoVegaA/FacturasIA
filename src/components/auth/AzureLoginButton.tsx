@@ -11,9 +11,9 @@ export function AzureLoginButton() {
   const { loading: demoAuthLoading } = useDemoAuth();
   
   const handleLogin = () => {
-    // Strengthen the guard to prevent initiating a login if one is already in progress
-    // or if a user account is already present. This prevents race conditions.
-    if (inProgress === "none" && accounts.length === 0) {
+    // The main guard is to check if an interaction is already in progress.
+    // The useEffect on the login page will handle redirection if the user is already authenticated.
+    if (inProgress === "none") {
       instance.loginPopup(loginRequest).catch(e => {
         // The logger in msalConfig is configured to handle most verbose errors.
         // We log here only if the promise itself rejects with an unexpected error.
