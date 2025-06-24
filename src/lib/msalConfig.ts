@@ -8,7 +8,7 @@ export const msalConfig: Configuration = {
     clientId: MSAL_CLIENT_ID!,
     authority: `https://login.microsoftonline.com/${MSAL_TENANT_ID}`,
     navigateToLoginRequestUrl: false, // Important for single-page applications
-    redirectUri: typeof window !== "undefined" ? window.location.origin : "/", // Explicitly use the current origin
+    redirectUri: "/", // Set to root path; MSAL will resolve it to the full origin.
   },
   cache: {
     cacheLocation: "sessionStorage", // "localStorage" or "sessionStorage"
