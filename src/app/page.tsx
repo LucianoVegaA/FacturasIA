@@ -26,10 +26,8 @@ export default function LoginPage() {
   const { isDemoAuthenticated, loginDemo, loading: demoAuthLoading } = useDemoAuth();
 
   useEffect(() => {
-    if (!demoAuthLoading && inProgress === InteractionStatus.None) {
-      if (msalIsAuthenticated || isDemoAuthenticated) {
-        router.push('/dashboard');
-      }
+    if (!demoAuthLoading && inProgress === InteractionStatus.None && (msalIsAuthenticated || isDemoAuthenticated)) {
+      router.push('/dashboard');
     }
   }, [msalIsAuthenticated, isDemoAuthenticated, demoAuthLoading, inProgress, router]);
 

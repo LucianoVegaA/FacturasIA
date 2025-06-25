@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { loginRequest } from "@/lib/msalConfig";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { AuthenticationResult } from "@azure/msal-browser";
 import { useDemoAuth } from '@/context/DemoAuthProvider'; // Added
 
@@ -16,7 +16,7 @@ export function AzureLoginButton() {
   const { isDemoAuthenticated, loading: demoAuthLoading } = useDemoAuth(); // Added
   const router = useRouter();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (inProgress === "none") {
       instance.loginPopup(loginRequest)
         .then((response: AuthenticationResult) => {
