@@ -13,13 +13,12 @@ import { useDemoAuth } from '@/context/DemoAuthProvider'; // Added
 export function AzureLoginButton() {
   const { instance, inProgress } = useMsal();
   const msalIsAuthenticated = useMsalIsAuthenticated();
-  const { isDemoAuthenticated, loading: demoAuthLoading } = useDemoAuth(); // Added
+  const { isDemoAuthenticated, loading: demoAuthLoading } = useDemoAuth();
   const router = useRouter();
 
   const handleLogin = () => {
     if (inProgress === "none") {
-      instance.loginPopup(loginRequest)
-        .then((response: AuthenticationResult) => {
+      instance.loginRedirect(loginRequest).then(() => {
           // Account is set active by MSAL, router push handled by useEffect
         })
         .catch(e => {
@@ -30,7 +29,7 @@ export function AzureLoginButton() {
 
   useEffect(() => {
     // Wait for demo auth to load from storage before checking
-    if (!demoAuthLoading) {
+ if (!demoAuthLoading) {
       if (msalIsAuthenticated || isDemoAuthenticated) {
         router.push("/dashboard");
       }
@@ -38,7 +37,7 @@ export function AzureLoginButton() {
   }, [msalIsAuthenticated, isDemoAuthenticated, demoAuthLoading, router]);
 
   // Don't render the button if already authenticated by either method and not loading demo auth
-  if (!demoAuthLoading && (msalIsAuthenticated || isDemoAuthenticated)) {
+ if (!demoAuthLoading && (msalIsAuthenticated || isDemoAuthenticated)) {
     return null; 
   }
 
@@ -46,7 +45,7 @@ export function AzureLoginButton() {
 
   return (
     <Button 
-      onClick={handleLogin} 
+ onClick={handleLogin}
       className="w-full bg-neutral-900 text-neutral-50 hover:bg-neutral-800 flex items-center justify-center space-x-2 py-3" 
       disabled={isLoading || demoAuthLoading} // Disable if MSAL is loading OR demo auth is loading
       size="lg"

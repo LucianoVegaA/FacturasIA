@@ -1,6 +1,6 @@
 "use client";
 
-import { PublicClientApplication, LogLevel, type Configuration, type PopupRequest, BrowserAuthOptions } from "@azure/msal-browser";
+import { PublicClientApplication, LogLevel, type Configuration, type RedirectRequest, BrowserAuthOptions } from "@azure/msal-browser";
 
 const MSAL_CLIENT_ID = process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID as string;
 
@@ -12,8 +12,8 @@ export const msalConfig: Configuration = {
     redirectUri: process.env.NEXT_PUBLIC_AZURE_REDIRECT_URI, // Use the configured redirect URI
   },
   cache: {
-    cacheLocation: "sessionStorage", // "localStorage" or "sessionStorage"
-    storeAuthStateInCookie: false, // Set to true if you have issues with Safari ITP
+    cacheLocation: "localStorage", // Change to localStorage for web applications
+    storeAuthStateInCookie: true,  // Helps with web applications
   },
   system: {
     loggerOptions: {
@@ -27,7 +27,7 @@ export const msalConfig: Configuration = {
             if (message.includes("PopupHandler.monitorPopupForHash - window closed")) {
               return;
             }
-            console.error("MSAL Login Redirect Error:", message);
+            console.error("MSAL Error:", message);
             return;
           case LogLevel.Info:
             // console.info(message); // Too verbose
@@ -36,7 +36,7 @@ export const msalConfig: Configuration = {
             // console.debug(message); // Too verbose
             return;
           case LogLevel.Warning:
-            console.warn(message);
+            console.warn("MSAL Warning:", message);
             return;
           default:
             return;
@@ -48,10 +48,29 @@ export const msalConfig: Configuration = {
   },
 };
 
+// Crear la instancia
 export const msalInstance = new PublicClientApplication(msalConfig);
 
-// Define scopes for login request
-export const loginRequest: PopupRequest = {
+// IMPORTANTE: Inicializar MSAL antes de usar
+let msalInitialized = false;
+
+export const initializeMsal = async () => {
+  if (!msalInitialized) {
+    console.log("Inicializando MSAL...");
+    try {
+      await msalInstance.initialize();
+      msalInitialized = true;
+      console.log("MSAL inicializado correctamente");
+    } catch (error) {
+      console.error("Error inicializando MSAL:", error);
+      throw error;
+    }
+  }
+  return msalInstance;
+};
+
+// CAMBIO: Usar RedirectRequest en lugar de PopupRequest
+export const loginRequest: RedirectRequest = {
   scopes: ["User.Read", "openid", "profile", "email"], // Basic scopes
 };
 

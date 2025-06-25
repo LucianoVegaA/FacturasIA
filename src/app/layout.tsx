@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { MsalAuthProvider } from '@/components/auth/MsalAuthProvider';
 import { DemoAuthProvider } from '@/context/DemoAuthProvider'; // Added
+import { GlobalAuthHandler } from '@/components/auth/GlobalAuthHandler';
 
 export const metadata: Metadata = {
   title: 'Invoice Insight',
@@ -25,6 +26,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <MsalAuthProvider>
+          <GlobalAuthHandler />
           <DemoAuthProvider> {/* Added */}
             {children}
             <Toaster />
