@@ -8,7 +8,7 @@ export const msalConfig: Configuration = {
   auth: {
     clientId: MSAL_CLIENT_ID,
     authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_AZURE_AD_TENANT_ID}`,
-    navigateToLoginRequestUrl: true, // Important for single-page applications
+    navigateToLoginRequestUrl: false, // Important for single-page applications
     redirectUri: process.env.NEXT_PUBLIC_AZURE_REDIRECT_URI, // Use the configured redirect URI
   },
   cache: {
