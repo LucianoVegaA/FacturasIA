@@ -85,7 +85,7 @@ export default function LoginPage() {
           
           <AzureLoginButton />
 
-          <div className="relative">
+          {/* <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
@@ -104,7 +104,7 @@ export default function LoginPage() {
           >
             <User className="h-5 w-5" />
             <span>Iniciar sesión como Invitado</span>
-          </Button>
+          </Button> */}
 
           <p className="text-center text-xs text-muted-foreground pt-4">
             Asegurado por Microsoft Azure para cuentas de Microsoft.
