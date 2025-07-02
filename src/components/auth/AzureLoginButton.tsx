@@ -6,23 +6,23 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { loginRequest } from "@/lib/msalConfig";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import type { AuthenticationResult } from "@azure/msal-browser";
 import { useDemoAuth } from '@/context/DemoAuthProvider'; // Added
 
 export function AzureLoginButton() {
   const { instance, inProgress } = useMsal();
   const msalIsAuthenticated = useMsalIsAuthenticated();
-  const { isDemoAuthenticated, loading: demoAuthLoading } = useDemoAuth(); // Added
+  const { isDemoAuthenticated, loading: demoAuthLoading } = useDemoAuth();
   const router = useRouter();
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     if (inProgress === "none") {
-      instance.loginPopup(loginRequest)
-        .then((response: AuthenticationResult) => {
+      instance.loginRedirect(loginRequest).then(() => {
           // Account is set active by MSAL, router push handled by useEffect
         })
         .catch(e => {
+          router.push("/dashboard");
           console.error("MSAL Login Popup Error:", e);
         });
     }
@@ -30,15 +30,14 @@ export function AzureLoginButton() {
 
   useEffect(() => {
     // Wait for demo auth to load from storage before checking
-    if (!demoAuthLoading) {
+ if (!demoAuthLoading) {
       if (msalIsAuthenticated || isDemoAuthenticated) {
-        router.push("/dashboard");
       }
     }
   }, [msalIsAuthenticated, isDemoAuthenticated, demoAuthLoading, router]);
 
   // Don't render the button if already authenticated by either method and not loading demo auth
-  if (!demoAuthLoading && (msalIsAuthenticated || isDemoAuthenticated)) {
+ if (!demoAuthLoading && (msalIsAuthenticated || isDemoAuthenticated)) {
     return null; 
   }
 
@@ -46,7 +45,7 @@ export function AzureLoginButton() {
 
   return (
     <Button 
-      onClick={handleLogin} 
+ onClick={handleLogin}
       className="w-full bg-neutral-900 text-neutral-50 hover:bg-neutral-800 flex items-center justify-center space-x-2 py-3" 
       disabled={isLoading || demoAuthLoading} // Disable if MSAL is loading OR demo auth is loading
       size="lg"
