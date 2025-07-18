@@ -18,20 +18,17 @@ export function AzureLoginButton() {
 
   const handleLogin = () => {
     if (inProgress === "none") {
-      instance.loginRedirect(loginRequest).then(() => {
-          // Account is set active by MSAL, router push handled by useEffect
-        })
-        .catch(e => {
-          router.push("/dashboard");
-          console.error("MSAL Login Popup Error:", e);
-        });
+      instance.loginRedirect(loginRequest).catch(e => {
+        console.error("MSAL Login Redirect Error:", e);
+      });
     }
   };
 
   useEffect(() => {
     // Wait for demo auth to load from storage before checking
- if (!demoAuthLoading) {
+    if (!demoAuthLoading) {
       if (msalIsAuthenticated || isDemoAuthenticated) {
+        router.push("/dashboard");
       }
     }
   }, [msalIsAuthenticated, isDemoAuthenticated, demoAuthLoading, router]);

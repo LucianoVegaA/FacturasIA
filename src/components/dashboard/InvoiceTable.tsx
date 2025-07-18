@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import type { Invoice } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Eye, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown, Upload, Save } from "lucide-react"; 
+import { ChevronLeft, ChevronRight, Eye, AlertTriangle, ArrowUp, ArrowDown, ChevronsUpDown, Upload, Save, Expand } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -31,6 +31,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 
@@ -44,7 +52,7 @@ interface InvoiceTableProps {
   onExportToSam?: () => void;
 }
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 15, 20, 25];
 
 const accountOptions = [
   "701001", "701003", "701006", "701008", "701009", "701011",
@@ -135,17 +143,73 @@ const TaxDisplay = ({ rate }: { rate: number }) => {
 };
 TaxDisplay.displayName = 'TaxDisplay';
 
+const ExpandableDescription: React.FC<{
+  description: string;
+  invoiceNumber: string;
+}> = ({ description, invoiceNumber }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const maxLength = 30;
+  const isLongDescription = description && description.length > maxLength;
+
+  return (
+    <div className="flex items-center gap-2 min-w-0">
+      <div className="flex-1 min-w-0">
+        <div className="truncate" title={description}>
+          {description}
+        </div>
+      </div>
+      {isLongDescription && (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 flex-shrink-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Expand className="h-3 w-3" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Descripción completa</DialogTitle>
+              <DialogDescription>
+                Factura N° {invoiceNumber}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4 p-4 bg-muted rounded-md">
+              <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                {description}
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+};
+ExpandableDescription.displayName = 'ExpandableDescription';
+
 
 export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange, sortKey, sortOrder, onSort, onExportToSam }: InvoiceTableProps) {
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
   const [pendingUpdate, setPendingUpdate] = React.useState<{ invoiceId: string; newAccountNumber: string } | null>(null);
 
-  const totalPages = Math.ceil(invoices.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(invoices.length / itemsPerPage);
   const paginatedInvoices = invoices.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
+
+  const handleItemsPerPageChange = (value: string) => {
+    const newItemsPerPage = parseInt(value);
+    setItemsPerPage(newItemsPerPage);
+    // Adjust current page to ensure we don't end up on an empty page
+    const maxPage = Math.ceil(invoices.length / newItemsPerPage);
+    setCurrentPage(prev => Math.min(prev, maxPage || 1));
+  };
 
   const handleInitiateAccountChange = (invoiceId: string | undefined, selectedAccount: string) => {
     if (invoiceId && onAccountChange) {
@@ -251,8 +315,11 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
                         )}
                       </TableCell>
                        <TableCell>
-                        <div className="w-40 truncate" title={invoice.invoice_description}>
-                            {invoice.invoice_description}
+                        <div className="w-60">
+                          <ExpandableDescription 
+                            description={invoice.invoice_description} 
+                            invoiceNumber={invoice.invoice_number}
+                          />
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
@@ -281,31 +348,54 @@ export function InvoiceTable({ invoices, onAccountChange, onInvoiceNumberChange,
               </TableBody>
             </Table>
           </div>
-          {totalPages > 1 && (
-            <div className="flex items-center justify-end space-x-2 py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Anterior
-              </Button>
+          <div className="flex items-center justify-between py-4">
+            <div className="flex items-center space-x-2">
               <span className="text-sm text-muted-foreground">
-                Página {currentPage} de {totalPages}
+                Mostrar
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Siguiente
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                <SelectTrigger className="w-16 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                    <SelectItem key={option} value={option.toString()}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground">
+                por página • {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, invoices.length)} de {invoices.length} facturas
+              </span>
             </div>
-          )}
+            
+            {totalPages > 1 && (
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Anterior
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Página {currentPage} de {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Siguiente
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 

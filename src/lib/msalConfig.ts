@@ -18,7 +18,7 @@ export const msalConfig: Configuration = {
     clientId: MSAL_CLIENT_ID,
     authority: `https://login.microsoftonline.com/${MSAL_TENANT_ID}`,
     redirectUri: MSAL_REDIRECT_URI,
-    navigateToLoginRequestUrl: true, // Cambiado a true para manejar mejor las redirecciones
+    navigateToLoginRequestUrl: false, // Cambiado a false para evitar loops de redirección
     postLogoutRedirectUri: MSAL_REDIRECT_URI, // Agregado para logout
   },
   cache: {
@@ -70,6 +70,7 @@ export const initializeMsal = async (): Promise<void> => {
 export const loginRequest: PopupRequest = {
   scopes: ["User.Read", "openid", "profile", "email"],
   prompt: "select_account", // Permite al usuario seleccionar cuenta
+  redirectUri: MSAL_REDIRECT_URI, // Asegurar que use el redirect URI correcto
 };
 
 // Request para silent token acquisition

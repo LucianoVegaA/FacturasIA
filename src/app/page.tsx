@@ -38,7 +38,7 @@ export default function LoginPage() {
   const isAuthenticating = demoAuthLoading || inProgress !== InteractionStatus.None;
   const isAuthenticated = msalIsAuthenticated || isDemoAuthenticated;
 
-  if (isAuthenticating || (!isAuthenticating && isAuthenticated)) {
+  if (isAuthenticating) {
     return (
       <div className="flex min-h-screen bg-background items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
