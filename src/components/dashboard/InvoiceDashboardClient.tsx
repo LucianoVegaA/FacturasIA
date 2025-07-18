@@ -86,7 +86,12 @@ export function InvoiceDashboardClient() {
       return;
     }
 
-    fetchData();
+    // Add a small delay to ensure proper initialization
+    const timeoutId = setTimeout(() => {
+      fetchData();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [demoAuthLoading, fetchData]);
   
   React.useEffect(() => {

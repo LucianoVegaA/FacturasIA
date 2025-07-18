@@ -48,7 +48,11 @@ export async function connectToDatabase(): Promise<{ client: MongoClient, db: Db
             version: ServerApiVersion.v1,
             strict: true,
             deprecationErrors: true,
-          }
+          },
+          connectTimeoutMS: 10000, // 10 seconds
+          serverSelectionTimeoutMS: 5000, // 5 seconds
+          maxPoolSize: 10,
+          retryWrites: true,
         });
         global._mongoClientPromise = client.connect();
       }
@@ -65,9 +69,20 @@ export async function connectToDatabase(): Promise<{ client: MongoClient, db: Db
           version: ServerApiVersion.v1,
           strict: true,
           deprecationErrors: true,
-        }
+        },
+        connectTimeoutMS: 15000, // 15 seconds for production
+        serverSelectionTimeoutMS: 10000, // 10 seconds for production
+        maxPoolSize: 20,
+        retryWrites: true,
       });
-      await client.connect();
+      
+      // Add connection timeout for production
+      const connectionPromise = client.connect();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('MongoDB connection timeout after 15 seconds')), 15000);
+      });
+      
+      await Promise.race([connectionPromise, timeoutPromise]);
       console.log('[MongoDB] Connected successfully in production mode');
     }
     
@@ -78,14 +93,29 @@ export async function connectToDatabase(): Promise<{ client: MongoClient, db: Db
     dbInstance = client.db(dbName);
     console.log(`[MongoDB] Database instance created for: ${dbName}`);
     
+    // Test the connection by pinging the database
+    await dbInstance.admin().ping();
+    console.log('[MongoDB] Connection verified with ping');
+    
     return { client, db: dbInstance };
   } catch (error: any) {
     console.error('[MongoDB] Connection failed:', error);
     console.error('[MongoDB] Error details:', {
       message: error.message,
       code: error.code,
-      name: error.name
+      name: error.name,
+      codeName: error.codeName
     });
+    
+    // Clean up connection attempt
+    if (client) {
+      try {
+        await client.close();
+      } catch (closeError) {
+        console.error('[MongoDB] Error closing failed connection:', closeError);
+      }
+    }
+    
     throw error;
   }
 }
