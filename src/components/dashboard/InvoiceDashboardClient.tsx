@@ -14,6 +14,7 @@ import { useDemoAuth } from "@/context/DemoAuthProvider";
 import { getInvoices, getErrorInvoices } from "@/app/actions/getInvoices";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ErrorDisplay } from "./ErrorDisplay";
+import { useProductionLogger } from "@/components/debug/ProductionLogger";
 
 type SortKey = keyof Invoice | null;
 type SortOrder = 'asc' | 'desc' | null;
@@ -23,6 +24,13 @@ export function InvoiceDashboardClient() {
   const [errorFiles, setErrorFiles] = React.useState<ErrorInvoice[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  
+  const { log, error: logError } = useProductionLogger('InvoiceDashboardClient');
+
+  // Log component mount
+  React.useEffect(() => {
+    log('Component mounted');
+  }, [log]);
 
   const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>([]);
   const [filters, setFilters] = React.useState<InvoiceFilters>({ 
@@ -41,18 +49,18 @@ export function InvoiceDashboardClient() {
     setIsLoading(true);
     setError(null);
     try {
-      console.log('[InvoiceDashboardClient] Starting data fetch...');
+      log('Starting data fetch...');
       const [invoices, errors] = await Promise.all([
           getInvoices(),
           getErrorInvoices()
       ]);
       
-      console.log(`[InvoiceDashboardClient] Fetched ${invoices.length} invoices and ${errors.length} errors`);
+      log(`Fetched ${invoices.length} invoices and ${errors.length} errors`);
       setManagedInvoices(invoices);
       setErrorFiles(errors);
       
     } catch (error: any) {
-      console.error('[InvoiceDashboardClient] Error fetching data:', error);
+      logError('Error fetching data:', error);
       
       const errorMessage = error.message || 'Error desconocido';
       setError(errorMessage);
@@ -70,7 +78,7 @@ export function InvoiceDashboardClient() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, log, logError]);
 
   React.useEffect(() => {
     // Don't fetch until we know the auth status

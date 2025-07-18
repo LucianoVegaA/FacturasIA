@@ -13,44 +13,57 @@ const MSAL_CLIENT_ID = process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID as string;
 const MSAL_TENANT_ID = process.env.NEXT_PUBLIC_AZURE_AD_TENANT_ID as string;
 const MSAL_REDIRECT_URI = process.env.NEXT_PUBLIC_AZURE_REDIRECT_URI as string;
 
-console.log('[MSAL Config] Environment variables check:', {
-  MSAL_CLIENT_ID_EXISTS: !!MSAL_CLIENT_ID,
-  MSAL_CLIENT_ID_LENGTH: MSAL_CLIENT_ID?.length || 0,
-  MSAL_TENANT_ID_EXISTS: !!MSAL_TENANT_ID,
-  MSAL_TENANT_ID_LENGTH: MSAL_TENANT_ID?.length || 0,
-  MSAL_REDIRECT_URI_EXISTS: !!MSAL_REDIRECT_URI,
-  MSAL_REDIRECT_URI_VALUE: MSAL_REDIRECT_URI || 'Not set',
-  NODE_ENV: process.env.NODE_ENV
-});
+// Only log in client-side environment to avoid server-side errors
+if (typeof window !== 'undefined') {
+  console.log('[MSAL Config] Environment variables check:', {
+    MSAL_CLIENT_ID_EXISTS: !!MSAL_CLIENT_ID,
+    MSAL_CLIENT_ID_LENGTH: MSAL_CLIENT_ID?.length || 0,
+    MSAL_TENANT_ID_EXISTS: !!MSAL_TENANT_ID,
+    MSAL_TENANT_ID_LENGTH: MSAL_TENANT_ID?.length || 0,
+    MSAL_REDIRECT_URI_EXISTS: !!MSAL_REDIRECT_URI,
+    MSAL_REDIRECT_URI_VALUE: MSAL_REDIRECT_URI || 'Not set',
+    NODE_ENV: process.env.NODE_ENV
+  });
+}
 
 // Validar variables de entorno críticas
 if (!MSAL_CLIENT_ID) {
-  console.error('[MSAL Config] NEXT_PUBLIC_AZURE_AD_CLIENT_ID is missing');
-  console.error('[MSAL Config] Available env vars:', Object.keys(process.env).filter(key => key.includes('AZURE')));
+  if (typeof window !== 'undefined') {
+    console.error('[MSAL Config] NEXT_PUBLIC_AZURE_AD_CLIENT_ID is missing');
+    console.error('[MSAL Config] Available env vars:', Object.keys(process.env).filter(key => key.includes('AZURE')));
+  }
   throw new Error('NEXT_PUBLIC_AZURE_AD_CLIENT_ID is required');
 }
 
 if (!MSAL_TENANT_ID) {
-  console.error('[MSAL Config] NEXT_PUBLIC_AZURE_AD_TENANT_ID is missing');
+  if (typeof window !== 'undefined') {
+    console.error('[MSAL Config] NEXT_PUBLIC_AZURE_AD_TENANT_ID is missing');
+  }
   throw new Error('NEXT_PUBLIC_AZURE_AD_TENANT_ID is required');
 }
 
 if (!MSAL_REDIRECT_URI) {
-  console.error('[MSAL Config] NEXT_PUBLIC_AZURE_REDIRECT_URI is missing');
-  console.log('[MSAL Config] Falling back to default redirect URI for production');
-  // Fallback para producción
-  const defaultRedirectUri = typeof window !== 'undefined' 
-    ? `${window.location.origin}/auth/redirect`
-    : 'https://facturasia-app.azurewebsites.net/auth/redirect';
-  console.log('[MSAL Config] Using redirect URI:', defaultRedirectUri);
+  if (typeof window !== 'undefined') {
+    console.error('[MSAL Config] NEXT_PUBLIC_AZURE_REDIRECT_URI is missing');
+    console.log('[MSAL Config] Falling back to default redirect URI for production');
+    // Fallback para producción
+    const defaultRedirectUri = typeof window !== 'undefined' 
+      ? `${window.location.origin}/auth/redirect`
+      : 'https://facturasia-app.azurewebsites.net/auth/redirect';
+    console.log('[MSAL Config] Using redirect URI:', defaultRedirectUri);
+  }
 }
 
 // Determinar redirect URI con fallback
 const getRedirectUri = () => {
-  console.log('[MSAL Config] getRedirectUri called');
+  if (typeof window !== 'undefined') {
+    console.log('[MSAL Config] getRedirectUri called');
+  }
   
   if (MSAL_REDIRECT_URI) {
-    console.log('[MSAL Config] Using environment redirect URI:', MSAL_REDIRECT_URI);
+    if (typeof window !== 'undefined') {
+      console.log('[MSAL Config] Using environment redirect URI:', MSAL_REDIRECT_URI);
+    }
     return MSAL_REDIRECT_URI;
   }
   
@@ -62,7 +75,9 @@ const getRedirectUri = () => {
   }
   
   const fallbackUri = 'https://facturasia-app.azurewebsites.net/auth/redirect';
-  console.log('[MSAL Config] Using fallback redirect URI:', fallbackUri);
+  if (typeof window !== 'undefined') {
+    console.log('[MSAL Config] Using fallback redirect URI:', fallbackUri);
+  }
   return fallbackUri;
 };
 
