@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useDemoAuth } from "@/context/DemoAuthProvider";
 import { getInvoices, getErrorInvoices } from "@/app/actions/getInvoices";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ErrorDisplay } from "./ErrorDisplay";
 
 type SortKey = keyof Invoice | null;
 type SortOrder = 'asc' | 'desc' | null;
@@ -21,6 +22,7 @@ export function InvoiceDashboardClient() {
   const [managedInvoices, setManagedInvoices] = React.useState<Invoice[]>([]);
   const [errorFiles, setErrorFiles] = React.useState<ErrorInvoice[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
   const [filteredInvoices, setFilteredInvoices] = React.useState<Invoice[]>([]);
   const [filters, setFilters] = React.useState<InvoiceFilters>({ 
@@ -37,15 +39,38 @@ export function InvoiceDashboardClient() {
 
   const fetchData = React.useCallback(async () => {
     setIsLoading(true);
-    const [invoices, errors] = await Promise.all([
-        getInvoices(),
-        getErrorInvoices()
-    ]);
-    
-    setManagedInvoices(invoices);
-    setErrorFiles(errors);
-    setIsLoading(false);
-  }, []);
+    setError(null);
+    try {
+      console.log('[InvoiceDashboardClient] Starting data fetch...');
+      const [invoices, errors] = await Promise.all([
+          getInvoices(),
+          getErrorInvoices()
+      ]);
+      
+      console.log(`[InvoiceDashboardClient] Fetched ${invoices.length} invoices and ${errors.length} errors`);
+      setManagedInvoices(invoices);
+      setErrorFiles(errors);
+      
+    } catch (error: any) {
+      console.error('[InvoiceDashboardClient] Error fetching data:', error);
+      
+      const errorMessage = error.message || 'Error desconocido';
+      setError(errorMessage);
+      
+      // Mostrar toast menos invasivo
+      toast({
+        title: "Error al cargar datos",
+        description: "Se mostrará información detallada del error en pantalla",
+        variant: "destructive",
+      });
+      
+      // Establecer arrays vacíos en caso de error
+      setManagedInvoices([]);
+      setErrorFiles([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
 
   React.useEffect(() => {
     // Don't fetch until we know the auth status
@@ -197,6 +222,14 @@ export function InvoiceDashboardClient() {
       <div className="flex w-full flex-col items-center justify-center pt-20">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <p className="mt-4 text-muted-foreground">Cargando facturas...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex w-full flex-col items-center justify-center pt-20">
+        <ErrorDisplay error={error} onRetry={fetchData} />
       </div>
     );
   }

@@ -13,13 +13,66 @@ const MSAL_CLIENT_ID = process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID as string;
 const MSAL_TENANT_ID = process.env.NEXT_PUBLIC_AZURE_AD_TENANT_ID as string;
 const MSAL_REDIRECT_URI = process.env.NEXT_PUBLIC_AZURE_REDIRECT_URI as string;
 
+console.log('[MSAL Config] Environment variables check:', {
+  MSAL_CLIENT_ID_EXISTS: !!MSAL_CLIENT_ID,
+  MSAL_CLIENT_ID_LENGTH: MSAL_CLIENT_ID?.length || 0,
+  MSAL_TENANT_ID_EXISTS: !!MSAL_TENANT_ID,
+  MSAL_TENANT_ID_LENGTH: MSAL_TENANT_ID?.length || 0,
+  MSAL_REDIRECT_URI_EXISTS: !!MSAL_REDIRECT_URI,
+  MSAL_REDIRECT_URI_VALUE: MSAL_REDIRECT_URI || 'Not set',
+  NODE_ENV: process.env.NODE_ENV
+});
+
+// Validar variables de entorno críticas
+if (!MSAL_CLIENT_ID) {
+  console.error('[MSAL Config] NEXT_PUBLIC_AZURE_AD_CLIENT_ID is missing');
+  console.error('[MSAL Config] Available env vars:', Object.keys(process.env).filter(key => key.includes('AZURE')));
+  throw new Error('NEXT_PUBLIC_AZURE_AD_CLIENT_ID is required');
+}
+
+if (!MSAL_TENANT_ID) {
+  console.error('[MSAL Config] NEXT_PUBLIC_AZURE_AD_TENANT_ID is missing');
+  throw new Error('NEXT_PUBLIC_AZURE_AD_TENANT_ID is required');
+}
+
+if (!MSAL_REDIRECT_URI) {
+  console.error('[MSAL Config] NEXT_PUBLIC_AZURE_REDIRECT_URI is missing');
+  console.log('[MSAL Config] Falling back to default redirect URI for production');
+  // Fallback para producción
+  const defaultRedirectUri = typeof window !== 'undefined' 
+    ? `${window.location.origin}/auth/redirect`
+    : 'https://facturasia-app.azurewebsites.net/auth/redirect';
+  console.log('[MSAL Config] Using redirect URI:', defaultRedirectUri);
+}
+
+// Determinar redirect URI con fallback
+const getRedirectUri = () => {
+  console.log('[MSAL Config] getRedirectUri called');
+  
+  if (MSAL_REDIRECT_URI) {
+    console.log('[MSAL Config] Using environment redirect URI:', MSAL_REDIRECT_URI);
+    return MSAL_REDIRECT_URI;
+  }
+  
+  // Fallback para producción
+  if (typeof window !== 'undefined') {
+    const dynamicUri = `${window.location.origin}/auth/redirect`;
+    console.log('[MSAL Config] Using dynamic redirect URI:', dynamicUri);
+    return dynamicUri;
+  }
+  
+  const fallbackUri = 'https://facturasia-app.azurewebsites.net/auth/redirect';
+  console.log('[MSAL Config] Using fallback redirect URI:', fallbackUri);
+  return fallbackUri;
+};
+
 export const msalConfig: Configuration = {
   auth: {
     clientId: MSAL_CLIENT_ID,
     authority: `https://login.microsoftonline.com/${MSAL_TENANT_ID}`,
-    redirectUri: MSAL_REDIRECT_URI,
+    redirectUri: getRedirectUri(),
     navigateToLoginRequestUrl: false, // Cambiado a false para evitar loops de redirección
-    postLogoutRedirectUri: MSAL_REDIRECT_URI, // Agregado para logout
+    postLogoutRedirectUri: getRedirectUri(), // Usar mismo URI para logout
   },
   cache: {
     cacheLocation: "sessionStorage",
@@ -70,7 +123,7 @@ export const initializeMsal = async (): Promise<void> => {
 export const loginRequest: PopupRequest = {
   scopes: ["User.Read", "openid", "profile", "email"],
   prompt: "select_account", // Permite al usuario seleccionar cuenta
-  redirectUri: MSAL_REDIRECT_URI, // Asegurar que use el redirect URI correcto
+  redirectUri: getRedirectUri(), // Asegurar que use el redirect URI correcto
 };
 
 // Request para silent token acquisition
@@ -99,5 +152,5 @@ export const getActiveAccount = (): AccountInfo | null => {
 // Función helper para logout
 export const logoutRequest = {
   account: getActiveAccount(),
-  postLogoutRedirectUri: MSAL_REDIRECT_URI,
+  postLogoutRedirectUri: getRedirectUri(),
 };
