@@ -8,8 +8,33 @@ console.log('[MongoDB] Environment check:', {
   MONGODB_URI_EXISTS: !!uri,
   MONGODB_DB_NAME_EXISTS: !!dbName,
   MONGODB_URI_LENGTH: uri?.length || 0,
-  MONGODB_DB_NAME_VALUE: dbName // Safe to log DB name
+  MONGODB_DB_NAME_VALUE: dbName, // Safe to log DB name
+  TOTAL_ENV_VARS: Object.keys(process.env).length,
+  MONGO_RELATED_VARS: Object.keys(process.env).filter(k => k.includes('MONGO')).length
 });
+
+// Additional detailed logging for debugging
+console.log('[MongoDB] Detailed URI analysis:');
+if (uri) {
+  console.log('[MongoDB] URI starts with:', uri.substring(0, 15));
+  console.log('[MongoDB] URI contains mongodb://', uri.includes('mongodb://'));
+  console.log('[MongoDB] URI contains mongodb+srv://', uri.includes('mongodb+srv://'));
+  console.log('[MongoDB] URI contains @', uri.includes('@'));
+} else {
+  console.log('[MongoDB] URI is null/undefined/empty');
+}
+
+console.log('[MongoDB] All MONGO environment variables:');
+Object.keys(process.env)
+  .filter(key => key.includes('MONGO'))
+  .forEach(key => {
+    const value = process.env[key];
+    if (key.includes('URI') && value) {
+      console.log(`[MongoDB] ${key}: ${value.substring(0, 20)}... (length: ${value.length})`);
+    } else {
+      console.log(`[MongoDB] ${key}: ${value}`);
+    }
+  });
 
 if (!uri) {
   console.error('[MongoDB] Missing MONGODB_URI environment variable');

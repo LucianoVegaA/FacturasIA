@@ -4,10 +4,13 @@
 import { connectToDatabase } from '@/lib/mongodb';
 import type { Invoice, ErrorInvoice } from "@/lib/types"; 
 import { transformRawInvoice } from "@/lib/types";
-import type { Document } from 'mongodb'; 
+import type { Document } from 'mongodb';
+import { logServerEnvironment } from '@/lib/serverEnvLogger'; 
 
 export async function getInvoices(): Promise<Invoice[]> {
   try {
+    // Log server environment on first call
+    logServerEnvironment();
     console.log('[getInvoices] Starting database connection...');
     const { db } = await connectToDatabase();
     console.log('[getInvoices] Database connected successfully');
