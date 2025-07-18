@@ -25,9 +25,27 @@ export default function LoginPage() {
   const msalIsAuthenticated = useMsalIsAuthenticated();
   const { isDemoAuthenticated, loginDemo, loading: demoAuthLoading } = useDemoAuth();
 
+  console.log('[LoginPage] Page loaded with status:', {
+    inProgress,
+    msalIsAuthenticated,
+    isDemoAuthenticated,
+    demoAuthLoading,
+    currentPath: typeof window !== 'undefined' ? window.location.pathname : 'Server-side'
+  });
+
   useEffect(() => {
+    console.log('[LoginPage] Auth check effect triggered:', {
+      demoAuthLoading,
+      inProgress,
+      msalIsAuthenticated,
+      isDemoAuthenticated
+    });
+
     if (!demoAuthLoading && inProgress === InteractionStatus.None && (msalIsAuthenticated || isDemoAuthenticated)) {
+      console.log('[LoginPage] User is authenticated, redirecting to dashboard');
       router.push('/dashboard');
+    } else {
+      console.log('[LoginPage] User not authenticated or still loading');
     }
   }, [msalIsAuthenticated, isDemoAuthenticated, demoAuthLoading, inProgress, router]);
 

@@ -17,13 +17,34 @@ export function DashboardGuard({ children }: { children: ReactNode }) {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
+    console.log('[DashboardGuard] Auth status check:', {
+      inProgress,
+      msalIsAuthenticated,
+      isDemoAuthenticated,
+      demoAuthLoading,
+      isRedirecting,
+      interactionStatus: InteractionStatus.None
+    });
+
     // Check auth once MSAL is idle and demo auth is loaded
     if (inProgress === InteractionStatus.None && !demoAuthLoading && !isRedirecting) {
+      console.log('[DashboardGuard] All conditions met for auth check');
+      
       if (!msalIsAuthenticated && !isDemoAuthenticated) {
-        console.log("Dashboard: Not authenticated, redirecting to login");
+        console.log("[DashboardGuard] Not authenticated, redirecting to login");
         setIsRedirecting(true);
         router.push("/");
+      } else {
+        console.log("[DashboardGuard] User is authenticated, allowing access");
+        console.log("[DashboardGuard] MSAL auth:", msalIsAuthenticated);
+        console.log("[DashboardGuard] Demo auth:", isDemoAuthenticated);
       }
+    } else {
+      console.log('[DashboardGuard] Waiting for auth status...', {
+        waitingForMsal: inProgress !== InteractionStatus.None,
+        waitingForDemo: demoAuthLoading,
+        alreadyRedirecting: isRedirecting
+      });
     }
   }, [msalIsAuthenticated, isDemoAuthenticated, inProgress, demoAuthLoading, router, isRedirecting]);
 
@@ -32,6 +53,12 @@ export function DashboardGuard({ children }: { children: ReactNode }) {
   // 2. MSAL is processing
   // 3. We are in the process of redirecting
   if (demoAuthLoading || inProgress !== InteractionStatus.None || isRedirecting) {
+    console.log('[DashboardGuard] Showing loading screen:', {
+      demoAuthLoading,
+      msalInProgress: inProgress !== InteractionStatus.None,
+      isRedirecting
+    });
+    
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -42,10 +69,12 @@ export function DashboardGuard({ children }: { children: ReactNode }) {
 
   // If authenticated by either method, render the children
   if (msalIsAuthenticated || isDemoAuthenticated) {
+    console.log('[DashboardGuard] Rendering dashboard content for authenticated user');
     return <>{children}</>;
   }
 
   // If we reach here and not authenticated, show loading while redirect happens
+  console.log('[DashboardGuard] Showing redirect loading screen');
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background">
       <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />

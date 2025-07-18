@@ -6,7 +6,11 @@ import { useEffect } from 'react';
 const AuthRedirect = () => {
   const router = useRouter();
 
+  console.log('[AuthRedirect] Auth redirect page loaded');
+  console.log('[AuthRedirect] Current URL:', typeof window !== 'undefined' ? window.location.href : 'Server-side');
+
   useEffect(() => {
+    console.log('[AuthRedirect] Redirecting to dashboard...');
     // Simple redirect to dashboard - MSAL initialization will handle the auth flow
     router.push('/dashboard');
   }, [router]);
